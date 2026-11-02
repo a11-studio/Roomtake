@@ -29,9 +29,7 @@ export default function Home() {
   }
 
   return (
-    <div className="isolate flex min-h-dvh flex-col pt-8 lg:pt-12">
-      {/* the home page sits on beige; isolate keeps it above the white body */}
-      <div aria-hidden className="fixed inset-0 -z-10 bg-veil" />
+    <div className="home flex min-h-dvh flex-col pt-8 lg:pt-12">
       <Image src="/RoomTake.svg" alt="Roomtake" width={78} height={60} priority />
 
       {/* Phone: headline, the how-it-works demo, buttons. Desktop: headline and

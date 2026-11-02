@@ -48,6 +48,13 @@ body {
   -webkit-tap-highlight-color: transparent;
 }
 
+/* The home page sits on beige. Set on the page itself (not a fixed layer), so
+   iOS Safari tints its toolbars and the overscroll with it, not white. */
+html:has(.home),
+html:has(.home) body {
+  background: var(--veil);
+}
+
 ::selection {
   background: var(--ink);
   color: var(--card);
