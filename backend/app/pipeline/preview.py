@@ -45,6 +45,29 @@ def draw_frame(img: Image.Image, tracks: list[sam.Track], idx: int) -> Image.Ima
     return out
 
 
+def object_gallery(objects: list[dict], room_dir, tile: int = 240, cols: int = 8) -> Image.Image:
+    """One padded crop per room.json object with its id, mask edge tinted."""
+    font = ImageFont.load_default(size=16)
+    tiles = []
+    for o in objects:
+        img = Image.open(room_dir / o["best_frame"]).convert("RGB")
+        mask = np.asarray(Image.open(room_dir / o["mask"])) > 0
+        base = np.asarray(img, dtype=np.float32)
+        color = np.array(color_for(o["id"]), dtype=np.float32)
+        base[~mask] *= 0.55  # dim everything outside the object
+        l, t, r, b = o["bbox"]
+        pad = 0.1 * max(r - l, b - t)
+        box = (max(0, l - pad), max(0, t - pad), min(img.width, r + pad), min(img.height, b + pad))
+        crop = Image.fromarray(base.astype(np.uint8)).crop(box)
+        crop.thumbnail((tile, tile - 22))
+        cell = Image.new("RGB", (tile, tile), (20, 20, 20))
+        cell.paste(crop, ((tile - crop.width) // 2, 0))
+        d = ImageDraw.Draw(cell)
+        d.text((6, tile - 20), o["id"], fill=tuple(int(c) for c in color), font=font)
+        tiles.append(cell)
+    return contact_sheet(tiles, cols=cols)
+
+
 def contact_sheet(tiles: list[Image.Image], cols: int = 2) -> Image.Image:
     tw, th = tiles[0].size
     sheet = Image.new("RGB", (tw * cols, th * ((len(tiles) + cols - 1) // cols)))

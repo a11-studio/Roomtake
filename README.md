@@ -13,18 +13,18 @@ Runtime AI is **Meta models only**: SAM 3.1, Muse Wonder, Muse Spark, Muse Image
 ## Pipeline
 
 ```
-video ──ffmpeg 10 fps/720p──▶ 5–8 sharp, distinct keyframes ──▶ 1 fps keyframe clip
-keyframe clip ──SAM 3.1, one request per concept, all in parallel──▶ tracks ──▶ room.json
-room.json + keyframes ──Muse Wonder (agent + tools: searchProducts, fits)──▶ plan
-plan + keyframe + SAM mask + product photo ──Muse Image edit──▶ before/after
+video ──ffmpeg 10 fps/720p──▶ SAM 3.1 tracks each concept through the whole clip ──▶ room.json
+      └─sharpness──▶ 5–8 keyframes (preferred "best frame" per object)
+room.json + frames ──Muse Wonder (agent + tools: searchProducts, fits)──▶ plan
+plan + best frame + SAM mask + product photo ──Muse Image edit──▶ before/after
 ```
 
-Room analysis takes ~20 s for 23 concepts (SAM ~9 s). Why the keyframe clip
-(measured in `spikes/t1b_latency.py`): the API serves a team at a roughly fixed
-rate, ~20 video frames/s but only ~1.3 images/s. Sending the keyframes as one
-tiny video is ~15x faster than separate image requests, and SAM keeps object
-IDs across keyframes, so one track = one real object. Full-video tracking at
-5 fps (~2 min) is kept for the pre-rendered demo shot.
+Room analysis tracks the full video at 10 fps: ~4–5 min for 23 concepts on a
+24 s clip. Faster modes (keyframes as images, keyframes as a 1 fps clip, ~20 s)
+got details wrong: 5 chairs instead of 4, shelves split into boards in
+close-ups, small side tables missed. One track = one real object. The API
+serves a team at ~20 video frames/s total (`spikes/t1b_latency.py`), so the UI
+shows progress per concept, and demo videos are pre-processed.
 
 ## Repo layout
 
@@ -63,10 +63,11 @@ cd backend
 uv run python -m app.pipeline.room ~/path/to/room.mov
 ```
 
-Writes `data/rooms/<video>/room.json`, `keyframes/`, `masks/` and `inventory.jpg`.
+Writes `data/rooms/<video>/room.json`, `frames/`, `masks/` and `inventory.jpg`.
+Add `--reuse-sam` to rebuild `room.json` from cached SAM tracks without API calls.
 
 `room.json` objects: `id, label, category, best_frame, mask, bbox, approx_size,
-color, confidence, seen_in`. `category: zone` marks free space (floor, an
+color, confidence, visible_s, seen_in_keyframes`. `category: zone` marks free space (floor, an
 empty balcony) where the architect can place new products.
 
 ## Spikes

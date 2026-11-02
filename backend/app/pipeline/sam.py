@@ -30,9 +30,9 @@ from app.meta_client import async_client
 
 
 # Throughput note (T1b, Nov 2): the API serves our team at a roughly fixed rate,
-# ~20 video frames/s but only ~1.3 images/s, regardless of parallelism. So 7
-# keyframes sent as a 7-frame video beat 7 separate image requests ~15x, and
-# SAM keeps object IDs across them.
+# ~20 video frames/s but only ~1.3 images/s, regardless of parallelism. Total
+# time is about (concepts x frames) / 20 s. We still track the full video at
+# 10 fps: the faster keyframe modes got details wrong (see room.py).
 
 
 async def upload_video(path: Path) -> str:
