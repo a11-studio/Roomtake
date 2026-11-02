@@ -27,6 +27,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, StreamingResponse
 from pydantic import BaseModel
 
+from app.agent.architect import make_plan, revise_plan
 from app.catalog import CATEGORIES, get_product, search_products
 from app.config import DATA_DIR
 from app.pipeline.room import analyze_room
@@ -164,6 +165,57 @@ def products(
 ) -> dict:
     hits = search_products(category, style, max_price, max_width)
     return {"categories": CATEGORIES, "products": [p.to_dict() for p in hits]}
+
+
+class PlanRequest(BaseModel):
+    style: str | None = None
+    budget: float | None = None
+    keep: list[str] = []
+    notes: str | None = None
+
+
+class ReviseRequest(BaseModel):
+    instruction: str
+
+
+def save_plan(room_id: str, plan: dict) -> dict:
+    """plan.json is the current plan; every version is kept as plan_<n>.json."""
+    d = room_dir(room_id)
+    n = len(list(d.glob("plan_*.json"))) + 1
+    plan = {**plan, "version": n}
+    for name in ("plan.json", f"plan_{n}.json"):
+        (d / name).write_text(json.dumps(plan, indent=2, ensure_ascii=False))
+    return plan
+
+
+@app.post("/api/rooms/{room_id}/plan")
+async def plan(room_id: str, req: PlanRequest) -> dict:
+    """Muse Wonder looks at the room and proposes 3-5 changes with products (~30-40 s)."""
+    load_room(room_id)
+    try:
+        result = await make_plan(room_dir(room_id), req.model_dump())
+    except Exception as e:
+        raise HTTPException(502, f"{type(e).__name__}: {e}") from e
+    return save_plan(room_id, result)
+
+
+@app.get("/api/rooms/{room_id}/plan")
+def get_plan(room_id: str) -> dict:
+    path = room_dir(room_id) / "plan.json"
+    if not path.exists():
+        raise HTTPException(404, "no plan yet")
+    return json.loads(path.read_text())
+
+
+@app.post("/api/rooms/{room_id}/plan/revise")
+async def revise(room_id: str, req: ReviseRequest) -> dict:
+    """Muse Spark applies a follow-up like "keep the sofa" or "cheaper" (~15 s)."""
+    current = get_plan(room_id)
+    try:
+        result = await revise_plan(room_dir(room_id), current, req.instruction)
+    except Exception as e:
+        raise HTTPException(502, f"{type(e).__name__}: {e}") from e
+    return save_plan(room_id, result)
 
 
 class RenderRequest(BaseModel):

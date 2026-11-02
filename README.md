@@ -44,7 +44,8 @@ backend/                 Python 3.12+, uv
       concepts.py        what SAM looks for: furniture, decor, fixture, zone
       room.py            video -> keyframes -> SAM -> room.json
       preview.py         debug drawings (masks + IDs)
-    agent/               (Tue) architect agent on Muse Wonder
+    agent/
+      architect.py       Wonder plans 3-5 changes with catalog tools; Spark revises
     catalog/             search_products(category, style, max_price, max_width)
       models.py          Product + category vocabulary (matches SAM concepts)
       dummyjson.py       source 1 of 3: DummyJSON -> ABO -> Westwing JSON
@@ -92,6 +93,9 @@ uv run uvicorn app.main:app --reload --port 8000
 | `GET /api/rooms/{id}` | `status` + `room` (room.json) when done |
 | `GET /api/rooms/{id}/files/{path}` | frames, masks, renders |
 | `GET /api/products?category=lamp&max_price=100&max_width=60` | catalog search |
+| `POST /api/rooms/{id}/plan` `{style?, budget?, keep?, notes?}` | Muse Wonder plan with products (~40-70 s) |
+| `POST /api/rooms/{id}/plan/revise` `{instruction}` | Muse Spark follow-up, e.g. "keep the sofa", "cheaper" (~20 s) |
+| `GET /api/rooms/{id}/plan` | current plan (every version kept as `plan_<n>.json`) |
 | `POST /api/rooms/{id}/render` `{object_id, product_id, action: replace\|add}` | before/after paths; cached per combo |
 
 `data/rooms/IMG_1184` (our living room) is a ready room for UI work: no upload needed.

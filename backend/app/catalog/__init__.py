@@ -13,13 +13,17 @@ from app.catalog import dummyjson
 from app.catalog.models import CATEGORIES, Product
 from app.config import DATA_DIR
 
-__all__ = ["CATEGORIES", "Product", "get_product", "search_products"]
+__all__ = ["CATEGORIES", "Product", "all_products", "get_product", "search_products"]
 
 
 @cache
 def _load() -> dict[str, Product]:
     products = dummyjson.load(DATA_DIR / "catalog" / "dummyjson.json")
     return {p.id: p for p in products}
+
+
+def all_products() -> list[Product]:
+    return list(_load().values())
 
 
 def get_product(product_id: str) -> Product | None:
