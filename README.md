@@ -42,7 +42,8 @@ backend/                 Python 3.12+, uv
     agent/               (Tue) architect agent on Muse Wonder
     catalog/             (Mon eve) searchProducts(category, style, maxPrice, maxWidth)
                          sources: DummyJSON -> Amazon Berkeley Objects -> Westwing JSON
-    render/              (Tue) Muse Image edits
+    render/
+      muse_image.py      Muse Image edit + paste back inside the SAM region
     main.py              (Mon eve) FastAPI
 web/                     (Mon eve) Next.js, mobile-first
 spikes/                  go/no-go tests T1–T3
@@ -74,6 +75,9 @@ empty balcony) where the architect can place new products.
 
 - `t1_sam_video.py` — T1, SAM 3.1 tracking on the full video (`report.md`, `keyframes.jpg`, `overlay.mp4`). Result: GO.
 - `t1b_latency.py` — SAM latency: fps vs keyframes vs parallelism.
+- `t2_muse_image.py` — T2, Muse Image swaps/adds a catalog product in our real frame
+  (`/v1/images/edits` with [room frame, product photo]), then the edit is pasted back
+  only inside the SAM region so the rest of the room stays pixel-identical. Result: GO.
 
 ## Data & licenses
 

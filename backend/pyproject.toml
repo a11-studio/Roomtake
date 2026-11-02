@@ -3,9 +3,11 @@ name = "roomai-backend"
 version = "0.1.0"
 requires-python = ">=3.12"
 dependencies = [
+    "httpx>=0.28.1",
     "meta-sam-parser>=0.1.0",
     "numpy>=2.5.4",
     "openai>=3.42.1",
     "pillow>=13.0.0",
     "python-dotenv>=1.2.4",
+    "scipy>=1.18.1",
 ]
