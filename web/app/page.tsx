@@ -4,15 +4,10 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
+import { HowItWorks } from "@/components/HowItWorks";
 import { uploadVideo } from "@/lib/api";
 
 const DEMO_ROOM = "IMG_1184";
-
-const STEPS = [
-  ["Film", "Walk slowly around your room for 30 seconds."],
-  ["Pick a style", "Scandinavian, Japandi, Art Deco and more."],
-  ["See it, buy it", "Your room restyled with real pieces you can order."],
-];
 
 export default function Home() {
   const router = useRouter();
@@ -39,8 +34,8 @@ export default function Home() {
       <div aria-hidden className="fixed inset-0 -z-10 bg-veil" />
       <Image src="/RoomTake.svg" alt="Roomtake" width={78} height={60} priority />
 
-      {/* Phone: headline, steps, buttons at the bottom. Desktop: headline and
-          buttons on the left, steps in a card on the right. */}
+      {/* Phone: headline, the how-it-works demo, buttons. Desktop: headline and
+          buttons on the left, the demo on the right. */}
       <div className="flex flex-1 flex-col lg:grid lg:grid-cols-[minmax(0,1fr)_400px] lg:gap-x-20 lg:py-16">
         <section className="mt-14 lg:col-start-1 lg:row-start-1 lg:mt-0 lg:self-end">
           <h1 className="text-[42px] font-semibold leading-[1.05] tracking-tight lg:text-[72px] lg:leading-[1]">
@@ -53,21 +48,11 @@ export default function Home() {
           </p>
         </section>
 
-        <ol className="mt-12 space-y-5 lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:mt-0 lg:space-y-7 lg:self-center lg:rounded-3xl lg:bg-card/70 lg:p-9 lg:shadow-[var(--shadow-card)]">
-          {STEPS.map(([title, text], i) => (
-            <li key={title} className="flex gap-4">
-              <span className="grid size-8 shrink-0 place-items-center rounded-full bg-card text-sm font-semibold shadow-[var(--shadow-card)]">
-                {i + 1}
-              </span>
-              <div>
-                <p className="font-medium">{title}</p>
-                <p className="text-sm text-muted">{text}</p>
-              </div>
-            </li>
-          ))}
-        </ol>
+        <section aria-label="How it works" className="mt-10 lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:mt-0 lg:self-center">
+          <HowItWorks />
+        </section>
 
-        <div className="mt-auto space-y-3 pt-14 lg:col-start-1 lg:row-start-2 lg:mt-10 lg:max-w-md lg:self-start lg:pt-0">
+        <div className="mt-auto space-y-3 pt-8 lg:col-start-1 lg:row-start-2 lg:mt-10 lg:max-w-md lg:self-start lg:pt-0">
           <input
             ref={input}
             type="file"
