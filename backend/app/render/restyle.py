@@ -129,7 +129,9 @@ async def restyle_view(room_dir: Path, room: dict, view: dict, brief: dict, out:
     zone = view["kind"] == "zone"
     masks = concept_masks(room_dir, view["frame"], [view["label"]] if zone else LAYOUT, w, h)
     objects = {o["id"]: o for o in room["objects"]}
-    keep = [objects[i] for i in brief.get("keep", []) if i in objects]
+    # only real pieces are pasted back; never floors/zones that new pieces stand on
+    keep = [objects[i] for i in brief.get("keep", [])
+            if i in objects and objects[i]["category"] in ("furniture", "decor")]
     keep_masks = [(o, object_mask(room_dir, o, view["frame"], w, h)) for o in keep]
     keep_masks = [(o, m) for o, m in keep_masks if m is not None]
 
@@ -140,6 +142,7 @@ async def restyle_view(room_dir: Path, room: dict, view: dict, brief: dict, out:
         size=f"{w}x{h}",
     )
     img = img.resize((w, h), Image.LANCZOS)
+    img.save(out.with_suffix(".raw.jpg"), quality=92)
     for _, m in keep_masks:  # kept items: the real pixels, not a redraw
         img = muse_image.composite(img, frame, ndimage.binary_dilation(m, iterations=4), feather_px=6)
     img.save(out, quality=92)

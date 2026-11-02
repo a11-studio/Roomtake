@@ -20,6 +20,8 @@ from app.config import ARCHITECT_MODEL, HELPER_MODEL
 from app.meta_client import async_client
 from app.render.restyle import LAYOUT
 
+KEEPABLE = ("furniture", "decor")
+
 BRIEF_SCHEMA = """{"title": str (style name, 1-3 words, e.g. "Scandinavian calm"),
  "room_type": str (e.g. "living room"),
  "summary": str (one sentence describing the look),
@@ -27,7 +29,7 @@ BRIEF_SCHEMA = """{"title": str (style name, 1-3 words, e.g. "Scandinavian calm"
  "pieces": {piece: str},  // for pieces in the photos from: %s - what each becomes
  "add": [str],             // 2-4 small additions: plants, lamps, textiles, wall decor
  "zones": {zone label: str}, // for free-space zones (e.g. "balcony floor"): what to put there
- "keep": [object ids],      // user's keep list, plus anything worth keeping as is
+ "keep": [object ids],      // furniture/decor to keep exactly as is (user's list, plus any worth keeping)
  "why": str}               // 2-3 short sentences for the user: what changes and why,
                            // grounded in what you see (light, colours, empty space)""" % ", ".join(LAYOUT)
 
@@ -63,7 +65,9 @@ def _inventory(room: dict) -> str:
 
 
 def _with_keep(brief: dict, keep: list[str], room: dict) -> dict:
-    ids = {o["id"] for o in room["objects"]}
+    """Keep list = things you can keep: furniture and decor. Floors and zones are
+    where new pieces go (pasting a kept floor back erased the new balcony set)."""
+    ids = {o["id"] for o in room["objects"] if o["category"] in KEEPABLE}
     brief["keep"] = sorted({*brief.get("keep", []), *keep} & ids)
     return brief
 
