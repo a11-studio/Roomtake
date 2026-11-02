@@ -13,5 +13,5 @@ Set `NEXT_PUBLIC_API_URL` to point at another backend.
 - `app/room/[id]/page.tsx` — analysis → style → look
 - `components/Analysis.tsx` — live "found" chips from the SAM progress stream
 - `components/Preferences.tsx` — style, budget, items to keep
-- `components/LookView.tsx` — restyled views (before/after), shop the look, make it real, revise bar
+- `components/LookView.tsx` — restyled views (before/after), real pieces used with buy links, revise bar
 - `app/globals.css` — design tokens (brand `#AFC2C9`)

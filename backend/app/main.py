@@ -293,16 +293,13 @@ def look_body(room_id: str, look_id: str) -> dict:
     if not SAFE_ID.match(look_id) or not (looks.look_dir(room_dir(room_id), look_id) / "look.json").exists():
         raise HTTPException(404, "look not found")
     look = looks.load_look(room_dir(room_id), look_id)
-    for item in look["items"]:  # looks saved before prices moved to EUR
-        for p in [*item["matches"], *([item["real"]] if item["real"] else [])]:
-            p.setdefault("price_eur", Product.from_dict(p).price_eur)
     return {**look, "shop": looks.summary(look)}
 
 
 @app.post("/api/rooms/{room_id}/looks")
 async def create_look(room_id: str, req: LookRequest) -> dict:
-    """Whole-room restyle in one style + shop the look. Poll GET .../looks/{id};
-    status goes brief -> rendering -> shopping -> done (about 1-2 min)."""
+    """Whole-room restyle in one style, using real catalog products where they fit.
+    Poll GET .../looks/{id}; status goes brief -> rendering -> checking -> done (~1 min)."""
     look = looks.new_look(room_dir(room_id), load_room(room_id), req.model_dump())
     start_look(room_id, look)
     return look
@@ -336,28 +333,8 @@ async def revise_look(room_id: str, look_id: str, req: ReviseLookRequest) -> dic
     if not parent.get("brief"):
         raise HTTPException(409, "look has no brief yet")
     look = looks.new_look(room_dir(room_id), load_room(room_id), parent["prefs"], parent, req.instruction)
-    start_look(room_id, look, parent["brief"])
+    start_look(room_id, look, looks.parent_brief(parent))
     return look
-
-
-class RealRequest(BaseModel):
-    item_id: str
-    product_id: str
-
-
-@app.post("/api/rooms/{room_id}/looks/{look_id}/real")
-async def make_real(room_id: str, look_id: str, req: RealRequest) -> dict:
-    """Swap a restyled item for the exact catalog product, in the restyled view (~15 s)."""
-    look = look_body(room_id, look_id)
-    if look["status"] != "done":
-        raise HTTPException(409, "look is not finished")
-    try:
-        await looks.make_real(room_dir(room_id), look, req.item_id, req.product_id)
-    except (KeyError, StopIteration) as e:
-        raise HTTPException(404, f"unknown item or product: {e}") from e
-    except RuntimeError as e:
-        raise HTTPException(502, str(e)) from e
-    return look_body(room_id, look_id)
 
 
 class RenderRequest(BaseModel):

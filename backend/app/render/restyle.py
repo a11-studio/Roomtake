@@ -9,15 +9,19 @@ they stay pixel-exact.
 
 from __future__ import annotations
 
+import asyncio
+import io
 import pickle
 import time
 from functools import cache
 from pathlib import Path
 
+import httpx
 import numpy as np
 from PIL import Image
 from scipy import ndimage
 
+from app.catalog.models import Product
 from app.pipeline import sam
 from app.render import muse_image
 
@@ -87,25 +91,53 @@ def position(mask: np.ndarray) -> str:
     return f"{horiz}, {depth}, about {round((xs.max() - xs.min()) / w * 100)}% of the image width"
 
 
-def prompt(view: dict, brief: dict, masks: dict[str, np.ndarray], kept: list[str]) -> str:
+def pieces_in_view(room_dir: Path, frame: int) -> list[str]:
+    """Layout pieces SAM saw on this frame (cheap: no mask decoding)."""
+    tracks = _tracks(room_dir / "sam_tracks.pkl")
+    return [c for c in LAYOUT if any(
+        (o := t.observations.get(frame)) is not None and (o.confidence or 0) >= 0.5 for t in tracks.get(c, []))]
+
+
+def _product_line(n: int, use: dict) -> str:
+    p = use["product"]
+    size = f", {p['width_cm']:.0f} cm wide" if p.get("width_cm") else ""
+    return f"image {n} is a real product, the {p['name_en'] or p['category']}{size}"
+
+
+def prompt(view: dict, brief: dict, masks: dict[str, np.ndarray], kept: list[str], uses: list[dict]) -> str:
+    """uses: real catalog products for this view, shown to the model as images 3, 4, ..."""
     style = f"{brief['title']}: {brief['summary']} Palette: {', '.join(brief.get('palette', []))}. " \
             f"Materials: {', '.join(brief.get('materials', []))}."
+    real = {u["for"]: (n, u) for n, u in enumerate(uses, start=3) if u["for"] != "add"}
+    added = [(n, u) for n, u in enumerate(uses, start=3) if u["for"] == "add"]
+    copy = "copy its exact design, shape, colour and material"
+    products = ""
+    if uses:
+        products = (
+            "Images " + ", ".join(str(n) for n in range(3, 3 + len(uses))) + " are real products to use: "
+            + "; ".join(_product_line(n, u) for n, u in enumerate(uses, start=3)) + ". "
+        )
     if view["kind"] == "zone":
         place = view["label"].replace(" floor", "")
         zones = brief.get("zones", {})
         what = next((v for k, v in zones.items() if place in k.lower()), None) or \
             "a compact seating set, plants in pots, an outdoor rug and soft lighting"
+        use = "".join(f" Include the product from image {n} ({copy}){': ' + u['note'] if u.get('note') else ''}."
+                      for n, u in enumerate(uses, start=3))
         return (
             f"Image 1 is a photo of my {place}. It is empty now; turn it into a cosy, fully furnished "
-            f"spot in this style — {style} Furnish it with: {what}. Place the new pieces on the floor "
+            f"spot in this style — {style} Furnish it with: {what}.{use} Place the new pieces on the floor "
             "(the pink area in image 2), clearly visible and filling the space, leaving a path to the door. "
-            + ROOM_KEEP
+            + products + ROOM_KEEP
         )
     pieces = brief.get("pieces", {})
-    layout = "; ".join(
-        f"the {c} ({position(m)})" + (f" becomes: {pieces[c]}" if c in pieces else "")
-        for c, m in masks.items() if c not in kept
-    )
+
+    def becomes(c: str) -> str:
+        if c in real:
+            return f" becomes the product in image {real[c][0]} ({copy})"
+        return f" becomes: {pieces[c]}" if c in pieces else ""
+
+    layout = "; ".join(f"the {c} ({position(m)}){becomes(c)}" for c, m in masks.items() if c not in kept)
     legend = ", ".join(f"{MAP_COLORS[c][0]} = {c}" for c in masks)
     text = (
         f"Image 1 is a photo of my {brief.get('room_type', 'living room')}. Restyle it in this style — {style} "
@@ -114,16 +146,26 @@ def prompt(view: dict, brief: dict, masks: dict[str, np.ndarray], kept: list[str
     )
     if kept:
         text += f"Keep these exactly as they are, unchanged: {', '.join('the ' + k for k in kept)}. "
+    for n, u in added:
+        text += f"Add the product from image {n} ({copy}){', ' + u['note'] if u.get('note') else ''}. "
     if brief.get("add"):
         text += f"You may also add: {', '.join(brief['add'])}. "
     text += (
         f"Image 2 is the layout map of image 1: each coloured shape is one piece of furniture ({legend}). "
-        "Keep each new piece inside its shape. "
+        "Keep each new piece inside its shape. " + products
     )
     return text + ROOM_KEEP
 
 
-async def restyle_view(room_dir: Path, room: dict, view: dict, brief: dict, out: Path) -> dict:
+async def _photo(url: str) -> Image.Image:
+    async with httpx.AsyncClient(timeout=60) as http:
+        return Image.open(io.BytesIO((await http.get(url)).content)).convert("RGB")
+
+
+async def restyle_view(room_dir: Path, room: dict, view: dict, brief: dict, out: Path,
+                       uses: list[dict] | None = None) -> dict:
+    """uses: [{"product": product dict, "for": piece or "add", "note": str}] for this view."""
+    uses = uses or []
     frame = Image.open(room_dir / view["file"]).convert("RGB")
     w, h = frame.size
     zone = view["kind"] == "zone"
@@ -134,11 +176,12 @@ async def restyle_view(room_dir: Path, room: dict, view: dict, brief: dict, out:
             if i in objects and objects[i]["category"] in ("furniture", "decor")]
     keep_masks = [(o, object_mask(room_dir, o, view["frame"], w, h)) for o in keep]
     keep_masks = [(o, m) for o, m in keep_masks if m is not None]
+    photos = await asyncio.gather(*(_photo(Product.from_dict(u["product"]).image_for_model) for u in uses))
 
     t0 = time.perf_counter()
     img, _ = await muse_image.edit(
-        [frame, layout_map(masks, w, h, zone)],
-        prompt(view, brief, masks, [o["label"] for o, _ in keep_masks]),
+        [frame, layout_map(masks, w, h, zone), *photos],
+        prompt(view, brief, masks, [o["label"] for o, _ in keep_masks], uses),
         size=f"{w}x{h}",
     )
     img = img.resize((w, h), Image.LANCZOS)

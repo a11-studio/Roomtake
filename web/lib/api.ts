@@ -83,14 +83,11 @@ export function uploadVideo(file: File, onProgress: (pct: number) => void): Prom
 export const getRoom = (id: string) =>
   fetch(`${API}/api/rooms/${id}`).then((r) => json<{ status: string; room?: Room; error?: string }>(r));
 
-export type LookItem = {
-  id: string;
-  view: number;
-  concept: string;
-  crop: string;
-  description: { category?: string; name?: string; style?: string; color?: string; material?: string };
-  matches: Product[];
-  real: Product | null;
+export type ProductUse = {
+  product: Product;
+  for: string; // the piece it becomes ("sofa") or "add"
+  view: string; // "main" or a zone label ("balcony floor")
+  note: string;
 };
 
 export type LookView = {
@@ -105,7 +102,7 @@ export type Look = {
   id: string;
   parent: string | null;
   instruction: string | null;
-  status: "brief" | "rendering" | "shopping" | "done" | "error";
+  status: "brief" | "rendering" | "checking" | "done" | "error";
   error: string | null;
   brief: null | {
     title: string;
@@ -115,7 +112,7 @@ export type Look = {
     materials?: string[];
   };
   views: LookView[];
-  items: LookItem[];
+  products: ProductUse[];
   layout_iou: { mean: number | null } | null;
   shop: { count: number; total: number; currency: string | null };
 };
@@ -132,8 +129,6 @@ export const getLook = (id: string, lookId: string) =>
 export const createLook = (id: string, prefs: Preferences) => post<Look>(`${API}/api/rooms/${id}/looks`, prefs);
 export const reviseLook = (id: string, lookId: string, instruction: string) =>
   post<Look>(`${API}/api/rooms/${id}/looks/${lookId}/revise`, { instruction });
-export const makeReal = (id: string, lookId: string, itemId: string, productId: string) =>
-  post<Look>(`${API}/api/rooms/${id}/looks/${lookId}/real`, { item_id: itemId, product_id: productId });
 
 export type Catalog = {
   categories: string[];

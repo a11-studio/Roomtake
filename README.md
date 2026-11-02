@@ -15,16 +15,16 @@ Runtime AI is **Meta models only**: SAM 3.1, Muse Wonder, Muse Spark, Muse Image
 ```
 video ──ffmpeg 10 fps/720p──▶ SAM 3.1 tracks each concept through the whole clip ──▶ room.json
                                 (inventory, masks, hero views: main room + free zones like the balcony)
-room.json + views ──Muse Wonder──▶ style brief (what each piece becomes, palette, what to keep)
-view + SAM layout map + brief ──Muse Image──▶ the whole room restyled, same layout; kept items pasted back
-restyled views ──SAM 3.1──▶ new pieces ──Muse Spark (vision)──▶ descriptions ──catalog──▶ shop the look
-"make it real" ──Muse Image──▶ an exact catalog product into the restyled view
-"warmer" / "keep my sofa" ──Muse Spark──▶ revised brief ──▶ new look
+room.json + views + catalog shortlist ──Muse Wonder──▶ style brief + real products that fit the style
+view + SAM layout map + product photos ──Muse Image──▶ the room restyled with those products, same layout
+restyled main view ──SAM 3.1──▶ layout check (IoU per piece)
+"warmer" / "keep my sofa" / "Scandinavian instead" ──Muse Spark──▶ revised brief + products ──▶ new look
 ```
 
-A look takes ~60-85 s: brief ~12-27 s (Wonder), two views restyled in parallel
-~20-25 s, shop the look ~25-35 s. SAM also measures how well the layout was kept
-(IoU of each piece before/after; kept items score ~0.98).
+Products come first: the stylist sees a shortlist of catalog products per piece (style
+matches first, within budget) and uses one only where it truly fits; everything else is
+drawn freely. Muse Image gets the product photos as references and draws them into the
+room, so the pieces you see are the ones you can buy. A look takes ~55-75 s.
 
 Room analysis tracks the full video at 10 fps: ~4–5 min for 23 concepts on a
 24 s clip. Faster modes (keyframes as images, keyframes as a 1 fps clip, ~20 s)
@@ -50,9 +50,9 @@ backend/                 Python 3.12+, uv
       room.py            video -> keyframes -> SAM -> room.json
       preview.py         debug drawings (masks + IDs)
     agent/
-      stylist.py         Wonder writes the style brief; Spark revises it and describes items
+      stylist.py         Wonder writes the brief and picks real products; Spark revises
       architect.py       per-item plan with catalog tools (earlier flow, API only)
-    looks.py             a look: brief -> restyled views -> shop the look; make it real
+    looks.py             a look: brief + products -> restyled views -> layout check
     catalog/             search_products(category, style, max_price, max_width), prices in EUR
       models.py          Product + category/style vocabulary (matches SAM concepts)
       curated.py         hand-picked Westwing products: import one page, Spark classifies
@@ -103,9 +103,8 @@ uv run uvicorn app.main:app --reload --port 8000
 | `GET /api/rooms/{id}` | `status` + `room` (room.json) when done |
 | `GET /api/rooms/{id}/files/{path}` | frames, masks, renders |
 | `GET /api/products?category=lamp&max_price=100&max_width=60` | catalog search |
-| `POST /api/rooms/{id}/looks` `{style?, budget?, keep?, notes?}` | start a look → poll `GET .../looks/{look_id}` (status brief → rendering → shopping → done) |
+| `POST /api/rooms/{id}/looks` `{style?, budget?, keep?, notes?}` | start a look → poll `GET .../looks/{look_id}` (status brief → rendering → checking → done); `products` = real pieces used |
 | `POST /api/rooms/{id}/looks/{look_id}/revise` `{instruction}` | new look from a revised brief |
-| `POST /api/rooms/{id}/looks/{look_id}/real` `{item_id, product_id}` | exact product into the restyled view |
 | `POST /api/rooms/{id}/plan` `{style?, budget?, keep?, notes?}` | Muse Wonder plan with products (~40-70 s) |
 | `POST /api/rooms/{id}/plan/revise` `{instruction}` | Muse Spark follow-up, e.g. "keep the sofa", "cheaper" (~20 s) |
 | `GET /api/rooms/{id}/plan` | current plan (every version kept as `plan_<n>.json`) |
