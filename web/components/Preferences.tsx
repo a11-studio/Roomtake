@@ -67,10 +67,27 @@ export function Preferences({
             <h1 className="mt-2 text-[28px] font-semibold tracking-tight lg:text-[36px]">
               We found {room.objects.length} things
             </h1>
-            <p className="mt-2 text-[15px] leading-relaxed text-muted">
-              {counts.map(([label, n]) => (n > 1 ? `${n} ${label}s` : label)).join(", ")}.
-              {freeZone && ` Plus an empty ${freeZone.label.replace(" floor", "")}, ready for something new.`}
-            </p>
+            <ul className="mt-4 flex flex-wrap gap-1.5">
+              {counts.map(([label, n], i) => (
+                <li
+                  key={label}
+                  className="pop-in flex items-center gap-1.5 rounded-full bg-[#f4efe9] py-1 pr-3 pl-3 text-[13px]"
+                  style={{ animationDelay: `${i * 25}ms` }}
+                >
+                  {label}
+                  {n > 1 && (
+                    <span className="grid h-[18px] min-w-[18px] place-items-center rounded-full bg-card px-1 text-[11px] font-medium text-muted tabular-nums">
+                      {n}
+                    </span>
+                  )}
+                </li>
+              ))}
+              {freeZone && (
+                <li className="pop-in rounded-full border border-dashed border-[#c9b9a7] px-3 py-[3px] text-[13px] text-muted">
+                  + empty {freeZone.label.replace(" floor", "")}, ready for something new
+                </li>
+              )}
+            </ul>
           </section>
 
           <section className="mt-10">
