@@ -1,8 +1,10 @@
 import type { Metadata, Viewport } from "next";
-import { Geist } from "next/font/google";
 import "./globals.css";
 
-const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
+// Google Sans Flex is newer than next/font's font list, so it comes straight
+// from Google Fonts (variable: optical size 6-144, weight 300-800).
+const FONT_CSS =
+  "https://fonts.googleapis.com/css2?family=Google+Sans+Flex:opsz,wght@6..144,300..800&display=swap";
 
 export const metadata: Metadata = {
   title: "Roomtake",
@@ -13,13 +15,18 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  themeColor: "#afc2c9",
+  themeColor: "#ffffff",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en">
-      <body className={`${geistSans.variable} antialiased`}>
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
+        <link rel="stylesheet" href={FONT_CSS} />
+      </head>
+      <body className="antialiased">
         <main className="mx-auto min-h-dvh w-full max-w-md px-5 pb-20">{children}</main>
       </body>
     </html>

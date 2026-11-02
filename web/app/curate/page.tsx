@@ -177,7 +177,7 @@ export default function Curate() {
                   onClick={() =>
                     setDraft({ ...draft, style: (on ? draftStyles.filter((x) => x !== s) : [...draftStyles, s]).join(", ") || null })
                   }
-                  className={`rounded-full px-2.5 py-1 text-xs ring-1 ${on ? "bg-brand ring-brand-strong" : "bg-paper ring-line"}`}
+                  className={`rounded-full px-2.5 py-1 text-xs ring-1 ${on ? "bg-ink text-white ring-ink" : "bg-veil ring-transparent"}`}
                 >
                   {s}
                 </button>

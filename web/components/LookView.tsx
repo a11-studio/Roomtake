@@ -63,7 +63,7 @@ function Progress({ status }: { status: Look["status"] }) {
             <li key={s.status} className="flex gap-3">
               <span
                 className={`mt-0.5 grid size-6 shrink-0 place-items-center rounded-full text-xs ${
-                  state === "done" ? "bg-ink text-white" : state === "now" ? "bg-brand" : "bg-line"
+                  state === "done" ? "bg-ink text-white" : state === "now" ? "bg-veil" : "bg-line"
                 }`}
               >
                 {state === "done" ? "✓" : state === "now" ? <span className="breathe size-2 rounded-full bg-ink" /> : ""}

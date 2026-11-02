@@ -1,13 +1,13 @@
 @import "tailwindcss";
 
-/* Design tokens. Page background is the brand colour; content sits on white
-   cards. Text colours are picked to stay readable on both. */
+/* Design tokens. Pages are white; the brand blue is reserved for the home
+   page; warm beige carries secondary details (chips, badges, tracks). */
 :root {
   --brand: #afc2c9;
   --brand-deep: #8fa7b0;
-  --paper: #afc2c9; /* page background */
+  --paper: #ffffff; /* page background */
   --card: #ffffff;
-  --veil: rgb(255 255 255 / 0.55); /* chips, secondary surfaces on the page */
+  --veil: #e0d6cc; /* beige: chips, badges, secondary buttons, placeholders */
   --ink: #18211f;
   --muted: #44545a; /* secondary text: ~4.5:1 on paper, ~7:1 on white */
   --line: rgb(24 33 31 / 0.08);
@@ -27,7 +27,7 @@
   --color-line: var(--line);
   --color-ok: var(--ok);
   --color-warn: var(--warn);
-  --font-sans: var(--font-geist-sans);
+  --font-sans: "Google Sans Flex", system-ui, sans-serif;
   --shadow-card: 0 1px 2px rgb(24 33 31 / 0.04), 0 8px 24px -12px rgb(24 33 31 / 0.18);
   --shadow-float: 0 12px 40px -12px rgb(24 33 31 / 0.35);
 }
@@ -39,7 +39,8 @@ html {
 body {
   background: var(--paper);
   color: var(--ink);
-  font-family: var(--font-geist-sans), system-ui, sans-serif;
+  font-family: "Google Sans Flex", system-ui, sans-serif;
+  font-optical-sizing: auto;
   -webkit-tap-highlight-color: transparent;
 }
 
