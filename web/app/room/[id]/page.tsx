@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { use, useCallback, useEffect, useState } from "react";
 import { Analysis } from "@/components/Analysis";
+import { Plus } from "@/components/Icons";
 import { LookView } from "@/components/LookView";
 import { Preferences } from "@/components/Preferences";
 import { createLook, getRoom, listLooks, reviseLook, type Preferences as Prefs, type Room } from "@/lib/api";
@@ -72,8 +73,9 @@ export default function RoomPage({ params }: { params: Promise<{ id: string }> }
               setStage("prefs");
               window.scrollTo({ top: 0 });
             }}
-            className="rounded-full bg-veil px-3.5 py-2 text-sm transition active:scale-95"
+            className="flex items-center gap-1.5 rounded-full bg-ink py-2 pr-4 pl-3 text-sm font-medium text-white transition active:scale-95"
           >
+            <Plus className="text-[15px]" />
             New style
           </button>
         )}
@@ -88,7 +90,9 @@ export default function RoomPage({ params }: { params: Promise<{ id: string }> }
       )}
       {stage === "analyzing" && <Analysis roomId={id} onDone={load} />}
       {stage === "prefs" && room && <Preferences roomId={id} room={room} busy={busy} onSubmit={onStyle} />}
-      {stage === "look" && lookId && <LookView key={lookId} roomId={id} lookId={lookId} busy={busy} onRevise={onRevise} />}
+      {stage === "look" && lookId && (
+        <LookView key={lookId} roomId={id} lookId={lookId} busy={busy} onRevise={onRevise} />
+      )}
       {error && <p className="mt-8 rounded-2xl bg-card p-4 text-sm text-warn shadow-[var(--shadow-card)]">{error}</p>}
     </>
   );

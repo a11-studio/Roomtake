@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { BeforeAfter } from "@/components/BeforeAfter";
+import { ArrowUp } from "@/components/Icons";
 import { Orb } from "@/components/Orb";
 import { fileUrl, getLook, thumb, type Look, type ProductUse } from "@/lib/api";
 
@@ -261,7 +262,7 @@ export function LookView({
               ))}
             </div>
             <form
-              className="mt-4 flex items-center gap-2 rounded-3xl bg-card p-2 pl-3 shadow-[var(--shadow-card)] ring-1 ring-line"
+              className="mt-4 flex items-center gap-2 rounded-full bg-card p-1.5 pl-2 shadow-[var(--shadow-card)] ring-1 ring-line"
               onSubmit={(e) => {
                 e.preventDefault();
                 if (text.trim()) onRevise(text.trim());
@@ -273,15 +274,15 @@ export function LookView({
                 value={text}
                 onChange={(e) => setText(e.target.value)}
                 disabled={busy}
-                placeholder="Or tell the stylist what to change"
+                placeholder="Tell the stylist what to change"
                 className="min-w-0 flex-1 rounded-2xl bg-transparent px-1.5 py-3 text-[15px] outline-none placeholder:text-muted/70"
               />
               <button
                 disabled={busy || !text.trim()}
                 aria-label="Send"
-                className="grid size-12 shrink-0 place-items-center rounded-2xl bg-ink text-lg text-white transition active:scale-95 disabled:opacity-30"
+                className="grid size-11 shrink-0 place-items-center rounded-full bg-ink text-lg text-white transition active:scale-95 disabled:opacity-30"
               >
-                ↑
+                <ArrowUp />
               </button>
             </form>
           </section>

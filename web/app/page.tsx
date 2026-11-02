@@ -79,7 +79,7 @@ export default function Home() {
           <button
             onClick={() => input.current?.click()}
             disabled={progress !== null}
-            className="relative w-full overflow-hidden rounded-2xl bg-ink py-4 text-base font-medium text-white transition active:scale-[0.99] disabled:opacity-90"
+            className="relative w-full overflow-hidden rounded-full bg-ink py-4 text-base font-medium text-white transition active:scale-[0.99] disabled:opacity-90"
           >
             {progress !== null && (
               <span
@@ -91,7 +91,7 @@ export default function Home() {
           </button>
           <Link
             href={`/room/${DEMO_ROOM}`}
-            className="block w-full rounded-2xl bg-card py-4 text-center text-base font-medium shadow-[var(--shadow-card)] transition active:scale-[0.99]"
+            className="block w-full rounded-full bg-card py-4 text-center text-base font-medium shadow-[var(--shadow-card)] transition active:scale-[0.99]"
           >
             Try our demo living room
           </Link>

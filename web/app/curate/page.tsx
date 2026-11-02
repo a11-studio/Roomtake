@@ -111,9 +111,9 @@ export default function Curate() {
           value={url}
           onChange={(e) => setUrl(e.target.value)}
           placeholder="https://www.westwing.sk/…"
-          className="min-w-0 flex-1 rounded-xl bg-card px-3 py-2.5 text-sm outline-none ring-1 ring-line focus:ring-brand-strong"
+          className="min-w-0 flex-1 rounded-full bg-card px-4 py-2.5 text-sm outline-none ring-1 ring-line focus:ring-brand-strong"
         />
-        <button disabled={!!busy} className="rounded-xl bg-ink px-4 text-sm font-medium text-white disabled:opacity-50">
+        <button disabled={!!busy} className="rounded-full bg-ink px-5 text-sm font-medium text-white disabled:opacity-50">
           Import
         </button>
       </form>
@@ -187,7 +187,7 @@ export default function Curate() {
           <button
             onClick={onSave}
             disabled={!!busy}
-            className="mt-4 w-full rounded-xl bg-ink py-3 text-sm font-medium text-white disabled:opacity-50"
+            className="mt-4 w-full rounded-full bg-ink py-3 text-sm font-medium text-white disabled:opacity-50"
           >
             Save to catalog
           </button>

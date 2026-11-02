@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { Spark } from "@/components/Icons";
 import { fileUrl, type Preferences as Prefs, type Room } from "@/lib/api";
 
 // Matches backend/app/catalog/models.py STYLES.
@@ -166,9 +167,18 @@ export function Preferences({
             <button
               onClick={() => onSubmit({ style, budget, keep })}
               disabled={busy}
-              className="w-full rounded-2xl bg-ink py-4 text-base font-medium text-white shadow-[var(--shadow-float)] transition active:scale-[0.99] disabled:opacity-80"
+              className="flex w-full items-center justify-center gap-2 rounded-full bg-ink py-4 text-base font-medium text-white shadow-[var(--shadow-float)] transition active:scale-[0.99] disabled:opacity-80"
             >
-              {busy ? "Starting…" : style ? `Show my room in ${style}` : "Surprise me with a style"}
+              {busy ? (
+                "Starting…"
+              ) : style ? (
+                `Show my room in ${style}`
+              ) : (
+                <>
+                  <Spark className="text-[18px]" />
+                  Surprise me with a style
+                </>
+              )}
             </button>
           </div>
           <p className="mt-3 text-center text-xs text-muted">Same room, same layout, new look · about a minute</p>
