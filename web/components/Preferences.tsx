@@ -3,9 +3,18 @@
 import { useMemo, useState } from "react";
 import { fileUrl, type Preferences as Prefs, type Room } from "@/lib/api";
 
-const STYLES = ["Scandinavian", "Japandi", "Art Deco", "Mid-Century", "Mediterranean"];
+// Matches backend/app/catalog/models.py STYLES.
+const STYLES: { name: string; hint: string; swatches: string[] }[] = [
+  { name: "Scandinavian", hint: "Light oak, linen, bouclé", swatches: ["#efe8dc", "#c9a57d", "#9aa7a2"] },
+  { name: "Japandi", hint: "Low, calm and earthy", swatches: ["#e6ddcf", "#8c7a64", "#3b3631"] },
+  { name: "Art Deco", hint: "Velvet, brass, marble", swatches: ["#1f4d3e", "#c9a34e", "#1e2a44"] },
+  { name: "Mid-Century", hint: "Walnut, mustard, olive", swatches: ["#8a5a3b", "#d4a23a", "#6b7f4e"] },
+  { name: "Mediterranean", hint: "Rattan, terracotta, jute", swatches: ["#f3eee6", "#c56a42", "#b9a27c"] },
+];
 
-/** Room summary + the three quick choices before the architect runs. */
+const BUDGET = { min: 300, max: 8000, step: 100 };
+
+/** Room summary + the three quick choices before the stylist runs. */
 export function Preferences({
   roomId,
   room,
@@ -26,86 +35,118 @@ export function Preferences({
     room.objects.filter((o) => o.category !== "zone").forEach((o) => c.set(o.label, (c.get(o.label) ?? 0) + 1));
     return [...c.entries()];
   }, [room]);
-  const furniture = room.objects.filter((o) => o.category === "furniture");
-  const freeSpace = room.objects.some((o) => o.category === "zone" && o.label !== "floor");
+  // one chip per kind of furniture ("chair ×4" keeps all four)
+  const furniture = useMemo(() => {
+    const g = new Map<string, string[]>();
+    room.objects.filter((o) => o.category === "furniture").forEach((o) => g.set(o.label, [...(g.get(o.label) ?? []), o.id]));
+    return [...g.entries()];
+  }, [room]);
+  const freeZone = room.views.find((v) => v.kind === "zone");
+  const fill = ((budget - BUDGET.min) / (BUDGET.max - BUDGET.min)) * 100;
 
   return (
     <div className="pt-6">
-      <div className="-mx-4 flex snap-x gap-2 overflow-x-auto px-4 pb-2">
+      <div className="-mx-5 flex snap-x gap-3 overflow-x-auto px-5 pb-1 [scrollbar-width:none]">
         {room.keyframes.map((k) => (
           // eslint-disable-next-line @next/next/no-img-element
           <img
             key={k.file}
             src={fileUrl(roomId, k.file)}
             alt=""
-            className="aspect-video w-56 shrink-0 snap-start rounded-xl object-cover"
+            className="aspect-[4/3] w-60 shrink-0 snap-start rounded-2xl object-cover shadow-[var(--shadow-card)]"
           />
         ))}
       </div>
 
-      <h1 className="mt-5 text-2xl font-semibold">We found {room.objects.length} things</h1>
-      <p className="mt-1 text-sm text-muted">
-        {counts.map(([label, n]) => (n > 1 ? `${n} ${label}s` : label)).join(", ")}
-        {freeSpace && ". Plus free space on the balcony, ready for something new."}
-      </p>
-
       <section className="mt-8">
-        <h2 className="text-sm font-medium">Style</h2>
-        <div className="mt-2 flex flex-wrap gap-2">
-          {STYLES.map((s) => (
-            <button
-              key={s}
-              onClick={() => setStyle(style === s ? undefined : s)}
-              className={`rounded-full px-3 py-1.5 text-sm ring-1 ${style === s ? "bg-brand ring-brand-strong" : "bg-card ring-line"}`}
-            >
-              {s}
-            </button>
-          ))}
-        </div>
+        <p className="eyebrow">Your room</p>
+        <h1 className="mt-2 text-[28px] font-semibold tracking-tight">We found {room.objects.length} things</h1>
+        <p className="mt-2 text-[15px] leading-relaxed text-muted">
+          {counts.map(([label, n]) => (n > 1 ? `${n} ${label}s` : label)).join(", ")}.
+          {freeZone && ` Plus an empty ${freeZone.label.replace(" floor", "")}, ready for something new.`}
+        </p>
       </section>
 
-      <section className="mt-6">
-        <div className="flex items-baseline justify-between">
-          <h2 className="text-sm font-medium">Budget to shop the look</h2>
-          <span className="text-sm tabular-nums">€{budget.toLocaleString("en-IE")}</span>
-        </div>
-        <input
-          type="range"
-          min={100}
-          max={8000}
-          step={100}
-          value={budget}
-          onChange={(e) => setBudget(Number(e.target.value))}
-          className="mt-2 w-full accent-[var(--brand-strong)]"
-        />
-      </section>
-
-      <section className="mt-6">
-        <h2 className="text-sm font-medium">Keep as it is</h2>
-        <div className="mt-2 flex flex-wrap gap-2">
-          {furniture.map((o) => {
-            const on = keep.includes(o.id);
+      <section className="mt-10">
+        <p className="eyebrow">Style</p>
+        <div className="mt-3 grid grid-cols-2 gap-3">
+          {STYLES.map((s) => {
+            const on = style === s.name;
             return (
               <button
-                key={o.id}
-                onClick={() => setKeep(on ? keep.filter((k) => k !== o.id) : [...keep, o.id])}
-                className={`rounded-full px-3 py-1.5 text-sm ring-1 ${on ? "bg-ink text-white ring-ink" : "bg-card ring-line"}`}
+                key={s.name}
+                onClick={() => setStyle(on ? undefined : s.name)}
+                aria-pressed={on}
+                className={`rounded-2xl p-3.5 text-left transition active:scale-[0.98] ${
+                  on ? "bg-ink text-white shadow-[var(--shadow-float)]" : "bg-card shadow-[var(--shadow-card)]"
+                }`}
               >
-                {o.color.name} {o.label}
+                <span className="flex">
+                  {s.swatches.map((c, i) => (
+                    <span
+                      key={c}
+                      className={`size-6 rounded-full ring-2 ${on ? "ring-ink" : "ring-card"} ${i ? "-ml-1.5" : ""}`}
+                      style={{ background: c }}
+                    />
+                  ))}
+                </span>
+                <span className="mt-3 block text-[15px] font-medium">{s.name}</span>
+                <span className={`block text-xs ${on ? "text-white/70" : "text-muted"}`}>{s.hint}</span>
               </button>
             );
           })}
         </div>
       </section>
 
-      <button
-        onClick={() => onSubmit({ style, budget, keep })}
-        disabled={busy}
-        className="mt-10 w-full rounded-2xl bg-ink py-4 text-base font-medium text-white disabled:opacity-70"
-      >
-        {busy ? "Starting…" : style ? `Show my room in ${style}` : "Surprise me with a style"}
-      </button>
-      <p className="mt-2 text-center text-xs text-muted">Same room, same layout, new look · about a minute</p>
+      <section className="mt-10">
+        <div className="flex items-baseline justify-between">
+          <p className="eyebrow">Budget for real pieces</p>
+          <span className="text-[15px] font-medium tabular-nums">€{budget.toLocaleString("en-IE")}</span>
+        </div>
+        <input
+          type="range"
+          min={BUDGET.min}
+          max={BUDGET.max}
+          step={BUDGET.step}
+          value={budget}
+          onChange={(e) => setBudget(Number(e.target.value))}
+          className="range mt-5 w-full"
+          style={{ ["--fill" as string]: `${fill}%` }}
+          aria-label="Budget"
+        />
+      </section>
+
+      <section className="mt-10">
+        <p className="eyebrow">Keep as it is</p>
+        <div className="mt-3 flex flex-wrap gap-2">
+          {furniture.map(([label, ids]) => {
+            const on = ids.every((i) => keep.includes(i));
+            return (
+              <button
+                key={label}
+                onClick={() => setKeep(on ? keep.filter((k) => !ids.includes(k)) : [...new Set([...keep, ...ids])])}
+                aria-pressed={on}
+                className={`rounded-full px-3.5 py-2 text-sm transition ${on ? "bg-ink text-white" : "bg-veil"}`}
+              >
+                {on && "✓ "}
+                {label}
+                {ids.length > 1 && <span className={on ? "text-white/60" : "text-muted"}> ×{ids.length}</span>}
+              </button>
+            );
+          })}
+        </div>
+      </section>
+
+      <div className="sticky bottom-4 mt-12">
+        <button
+          onClick={() => onSubmit({ style, budget, keep })}
+          disabled={busy}
+          className="w-full rounded-2xl bg-ink py-4 text-base font-medium text-white shadow-[var(--shadow-float)] transition active:scale-[0.99] disabled:opacity-80"
+        >
+          {busy ? "Starting…" : style ? `Show my room in ${style}` : "Surprise me with a style"}
+        </button>
+      </div>
+      <p className="mt-3 text-center text-xs text-muted">Same room, same layout, new look · about a minute</p>
     </div>
   );
 }

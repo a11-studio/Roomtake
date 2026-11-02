@@ -1,40 +1,112 @@
 @import "tailwindcss";
 
-/* Design tokens. Brand colour from Martin; the rest is a neutral starting
-   point to be tuned. */
+/* Design tokens. Page background is the brand colour; content sits on white
+   cards. Text colours are picked to stay readable on both. */
 :root {
   --brand: #afc2c9;
-  --brand-strong: #7f9aa4;
-  --ink: #1c2427;
-  --muted: #64737a;
-  --paper: #f5f7f8;
+  --brand-deep: #8fa7b0;
+  --paper: #afc2c9; /* page background */
   --card: #ffffff;
-  --line: #dde5e8;
-  --ok: #3f7d5a;
-  --warn: #a8641f;
+  --veil: rgb(255 255 255 / 0.55); /* chips, secondary surfaces on the page */
+  --ink: #18211f;
+  --muted: #44545a; /* secondary text: ~4.5:1 on paper, ~7:1 on white */
+  --line: rgb(24 33 31 / 0.08);
+  --ok: #2f6b4b;
+  --warn: #9a4d16;
 }
 
 @theme inline {
   --color-brand: var(--brand);
-  --color-brand-strong: var(--brand-strong);
-  --color-ink: var(--ink);
-  --color-muted: var(--muted);
+  --color-brand-deep: var(--brand-deep);
+  --color-brand-strong: var(--brand-deep);
   --color-paper: var(--paper);
   --color-card: var(--card);
+  --color-veil: var(--veil);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
   --color-line: var(--line);
   --color-ok: var(--ok);
   --color-warn: var(--warn);
   --font-sans: var(--font-geist-sans);
+  --shadow-card: 0 1px 2px rgb(24 33 31 / 0.04), 0 8px 24px -12px rgb(24 33 31 / 0.18);
+  --shadow-float: 0 12px 40px -12px rgb(24 33 31 / 0.35);
+}
+
+html {
+  background: var(--paper);
 }
 
 body {
   background: var(--paper);
   color: var(--ink);
   font-family: var(--font-geist-sans), system-ui, sans-serif;
+  -webkit-tap-highlight-color: transparent;
+}
+
+::selection {
+  background: var(--ink);
+  color: var(--card);
+}
+
+/* Small caps label used above sections */
+.eyebrow {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
 }
 
 @keyframes pop-in {
-  from { opacity: 0; transform: translateY(6px) scale(0.98); }
+  from { opacity: 0; transform: translateY(8px); }
   to { opacity: 1; transform: none; }
 }
-.pop-in { animation: pop-in 0.35s ease-out both; }
+.pop-in { animation: pop-in 0.45s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+
+/* Light sweeping across an image while it is being redrawn */
+@keyframes sweep {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(100%); }
+}
+.shimmer { position: relative; overflow: hidden; }
+.shimmer::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(100deg, transparent 20%, rgb(255 255 255 / 0.55) 50%, transparent 80%);
+  animation: sweep 1.8s ease-in-out infinite;
+}
+
+@keyframes breathe {
+  0%, 100% { opacity: 0.35; transform: scale(0.85); }
+  50% { opacity: 1; transform: scale(1); }
+}
+.breathe { animation: breathe 1.4s ease-in-out infinite; }
+
+/* Range input: ink thumb on a soft track */
+input[type="range"].range {
+  appearance: none;
+  height: 4px;
+  border-radius: 999px;
+  background: linear-gradient(var(--ink), var(--ink)) 0 / var(--fill, 0%) 100% no-repeat, var(--line);
+}
+input[type="range"].range::-webkit-slider-thumb {
+  appearance: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  background: var(--card);
+  border: 2px solid var(--ink);
+  box-shadow: var(--shadow-card);
+}
+input[type="range"].range::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  background: var(--card);
+  border: 2px solid var(--ink);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pop-in, .shimmer::after, .breathe { animation: none; }
+}

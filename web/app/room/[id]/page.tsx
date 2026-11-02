@@ -62,22 +62,34 @@ export default function RoomPage({ params }: { params: Promise<{ id: string }> }
 
   return (
     <>
-      <header className="flex items-center justify-between pt-5">
-        <Link href="/">
-          <Image src="/RoomTake.svg" alt="Roomtake" width={46} height={36} />
+      <header className="flex items-center justify-between pt-6">
+        <Link href="/" aria-label="Home">
+          <Image src="/RoomTake.svg" alt="Roomtake" width={52} height={40} />
         </Link>
         {stage === "look" && (
-          <button onClick={() => setStage("prefs")} className="text-sm text-muted underline-offset-2 hover:underline">
+          <button
+            onClick={() => {
+              setStage("prefs");
+              window.scrollTo({ top: 0 });
+            }}
+            className="rounded-full bg-veil px-3.5 py-2 text-sm transition active:scale-95"
+          >
             New style
           </button>
         )}
       </header>
 
-      {stage === "loading" && <p className="pt-10 text-sm text-muted">Loading…</p>}
+      {stage === "loading" && (
+        <div className="pt-10">
+          <span className="shimmer block aspect-[4/3] w-60 rounded-2xl bg-veil" />
+          <span className="shimmer mt-8 block h-8 w-56 rounded-full bg-veil" />
+          <span className="shimmer mt-3 block h-4 w-full rounded-full bg-veil" />
+        </div>
+      )}
       {stage === "analyzing" && <Analysis roomId={id} onDone={load} />}
       {stage === "prefs" && room && <Preferences roomId={id} room={room} busy={busy} onSubmit={onStyle} />}
       {stage === "look" && lookId && <LookView key={lookId} roomId={id} lookId={lookId} busy={busy} onRevise={onRevise} />}
-      {error && <p className="mt-6 text-sm text-warn">{error}</p>}
+      {error && <p className="mt-8 rounded-2xl bg-card p-4 text-sm text-warn shadow-[var(--shadow-card)]">{error}</p>}
     </>
   );
 }

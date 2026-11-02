@@ -20,6 +20,7 @@ export type RoomObject = {
 export type Room = {
   source_video: string;
   keyframes: { file: string; time_s: number }[];
+  views: { file: string; frame: number; kind: "main" | "zone"; label: string }[];
   objects: RoomObject[];
 };
 

@@ -20,7 +20,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
   return (
     <html lang="en">
       <body className={`${geistSans.variable} antialiased`}>
-        <main className="mx-auto min-h-dvh w-full max-w-md px-4 pb-16">{children}</main>
+        <main className="mx-auto min-h-dvh w-full max-w-md px-5 pb-20">{children}</main>
       </body>
     </html>
   );

@@ -6,15 +6,15 @@ import { fileUrl, getLook, thumb, type Look, type ProductUse } from "@/lib/api";
 
 const QUICK = ["Warmer and cosier", "Keep my sofa", "More plants", "Try Art Deco instead"];
 
-const STAGES: Record<Look["status"], string> = {
-  brief: "The stylist is looking at your room…",
-  rendering: "Restyling your room with real products, keeping your layout…",
-  checking: "Checking your layout is kept…",
-  done: "",
-  error: "",
-};
+const STEPS: { status: Look["status"]; label: string; hint: string }[] = [
+  { status: "brief", label: "Reading your room", hint: "The stylist picks a direction and real pieces that fit" },
+  { status: "rendering", label: "Drawing your new room", hint: "Same walls, same layout, new everything else" },
+  { status: "checking", label: "Checking the layout", hint: "Making sure every piece stayed in its place" },
+];
+const ORDER: Look["status"][] = ["brief", "rendering", "checking", "done"];
 
-const money = (n: number | undefined) => (n ?? 0).toLocaleString("en-IE", { style: "currency", currency: "EUR", maximumFractionDigits: 0 });
+const money = (n: number | undefined) =>
+  (n ?? 0).toLocaleString("en-IE", { style: "currency", currency: "EUR", maximumFractionDigits: 0 });
 
 /** Polls a look until it is done; shows views as soon as each is ready. */
 function useLook(roomId: string, lookId: string) {
@@ -41,29 +41,71 @@ function useLook(roomId: string, lookId: string) {
   return look;
 }
 
-function UsedProduct({ use }: { use: ProductUse }) {
-  const p = use.product;
-  const where = use.for === "add" ? "Added" : `Your new ${use.for}`;
+function useElapsed() {
+  const [start] = useState(() => Date.now());
+  const [now, setNow] = useState(start);
+  useEffect(() => {
+    const t = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(t);
+  }, []);
+  return Math.round((now - start) / 1000);
+}
+
+function Progress({ status }: { status: Look["status"] }) {
+  const elapsed = useElapsed();
+  const at = ORDER.indexOf(status);
   return (
-    <li className="pop-in flex items-center gap-3 rounded-2xl bg-card p-3 ring-1 ring-line">
+    <section className="pop-in mt-8 rounded-3xl bg-card p-5 shadow-[var(--shadow-card)]">
+      <ol className="space-y-4">
+        {STEPS.map((s, i) => {
+          const state = i < at ? "done" : i === at ? "now" : "next";
+          return (
+            <li key={s.status} className="flex gap-3">
+              <span
+                className={`mt-0.5 grid size-6 shrink-0 place-items-center rounded-full text-xs ${
+                  state === "done" ? "bg-ink text-white" : state === "now" ? "bg-brand" : "bg-line"
+                }`}
+              >
+                {state === "done" ? "✓" : state === "now" ? <span className="breathe size-2 rounded-full bg-ink" /> : ""}
+              </span>
+              <div className={state === "next" ? "opacity-45" : ""}>
+                <p className="text-[15px] font-medium">{s.label}</p>
+                {state === "now" && <p className="text-sm text-muted">{s.hint}</p>}
+              </div>
+            </li>
+          );
+        })}
+      </ol>
+      <p className="mt-5 border-t border-line pt-3 text-xs text-muted tabular-nums">
+        {elapsed}s · usually about a minute
+      </p>
+    </section>
+  );
+}
+
+function UsedProduct({ use, index }: { use: ProductUse; index: number }) {
+  const p = use.product;
+  const where = use.for === "add" ? "Added" : `New ${use.for}`;
+  return (
+    <li
+      className="pop-in flex items-center gap-4 rounded-2xl bg-card p-3 pr-4 shadow-[var(--shadow-card)]"
+      style={{ animationDelay: `${index * 60}ms` }}
+    >
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={thumb(p.image_url)} alt="" className="size-16 shrink-0 rounded-xl bg-paper object-contain" />
+      <img src={thumb(p.image_url)} alt="" className="size-16 shrink-0 rounded-xl bg-[#f6f5f3] object-contain p-1" />
       <div className="min-w-0 flex-1">
-        <p className="text-[11px] uppercase tracking-wide text-muted">
+        <p className="eyebrow !text-[10px]">
           {where}
           {use.view !== "main" && ` · ${use.view.replace(" floor", "")}`}
         </p>
-        <p className="truncate text-sm font-medium">{p.name_en ?? p.name}</p>
-        <p className="text-xs text-muted">
-          {money(p.price_eur ?? p.price)}
-          {p.width_cm ? ` · ${p.width_cm} cm wide` : ""}
-        </p>
+        <p className="mt-0.5 truncate text-[15px] font-medium">{p.name_en ?? p.name}</p>
+        <p className="text-sm text-muted tabular-nums">{money(p.price_eur ?? p.price)}</p>
       </div>
       <a
         href={p.product_url}
         target="_blank"
         rel="noreferrer"
-        className="shrink-0 rounded-full bg-ink px-3 py-1.5 text-xs font-medium text-white"
+        className="shrink-0 rounded-full bg-ink px-4 py-2 text-sm font-medium text-white transition active:scale-95"
       >
         Buy
       </a>
@@ -84,21 +126,38 @@ export function LookView({
 }) {
   const look = useLook(roomId, lookId);
   const [text, setText] = useState("");
+  const [more, setMore] = useState(false);
 
-  if (!look) return <p className="pt-10 text-sm text-muted">Loading…</p>;
+  if (!look) {
+    return (
+      <div className="pt-10">
+        <span className="shimmer block h-4 w-32 rounded-full bg-veil" />
+        <span className="shimmer mt-4 block h-8 w-56 rounded-full bg-veil" />
+        <span className="shimmer mt-8 block aspect-video w-full rounded-3xl bg-veil" />
+      </div>
+    );
+  }
   const working = look.status !== "done" && look.status !== "error";
+  const products = look.products ?? [];
 
   return (
-    <div className="pt-6">
+    <div className="pt-8">
+      <p className="eyebrow">{look.instruction ? `“${look.instruction}”` : "Your room, restyled"}</p>
       {look.brief ? (
         <>
-          <p className="text-sm text-muted">{look.instruction ? `“${look.instruction}”` : "Your room, restyled"}</p>
-          <h1 className="mt-1 text-2xl font-semibold">{look.brief.title}</h1>
-          <p className="mt-2 text-[15px] text-muted">{look.brief.why ?? look.brief.summary}</p>
+          <h1 className="pop-in mt-2 text-[30px] font-semibold leading-tight tracking-tight">{look.brief.title}</h1>
+          <p className={`pop-in mt-3 text-[15px] leading-relaxed text-muted ${more ? "" : "line-clamp-3"}`}>
+            {look.brief.why ?? look.brief.summary}
+          </p>
+          {!more && (
+            <button onClick={() => setMore(true)} className="mt-1 text-sm font-medium underline-offset-4 hover:underline">
+              Read more
+            </button>
+          )}
           {look.brief.palette && (
-            <ul className="mt-3 flex flex-wrap gap-1.5">
-              {[...new Set([...look.brief.palette, ...(look.brief.materials ?? [])])].map((p) => (
-                <li key={p} className="rounded-full bg-card px-2.5 py-1 text-xs ring-1 ring-line">
+            <ul className="pop-in mt-4 flex flex-wrap gap-1.5">
+              {[...new Set(look.brief.palette)].slice(0, 5).map((p) => (
+                <li key={p} className="rounded-full bg-veil px-3 py-1 text-xs">
                   {p}
                 </li>
               ))}
@@ -106,59 +165,59 @@ export function LookView({
           )}
         </>
       ) : (
-        <h1 className="text-2xl font-semibold">Designing your look</h1>
+        <h1 className="mt-2 text-[30px] font-semibold tracking-tight">Designing your look</h1>
       )}
 
-      {working && (
-        <p className="mt-5 flex items-center gap-2 text-sm">
-          <span className="size-2 animate-pulse rounded-full bg-brand-strong" />
-          {STAGES[look.status]}
+      {working && <Progress status={look.status} />}
+      {look.status === "error" && (
+        <p className="mt-8 rounded-2xl bg-card p-4 text-sm text-warn shadow-[var(--shadow-card)]">
+          Something went wrong: {look.error}
         </p>
       )}
-      {look.status === "error" && <p className="mt-5 text-sm text-warn">{look.error}</p>}
 
-      <div className="mt-6 space-y-4">
+      <div className="mt-8 space-y-5">
         {look.views.map((v, i) => (
-          <figure key={v.file} className="overflow-hidden rounded-2xl bg-card ring-1 ring-line">
-            {v.current ? (
-              <BeforeAfter before={fileUrl(roomId, v.file)} after={fileUrl(roomId, v.current)} alt={v.label} />
-            ) : (
-              <div className="relative">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={fileUrl(roomId, v.file)} alt="" className="aspect-video w-full object-cover" />
-                <div className="absolute inset-0 grid place-items-center bg-white/45 text-sm font-medium">
-                  {i === 0 ? "Restyling…" : "Furnishing the free space…"}
+          <figure key={v.file}>
+            <div className="overflow-hidden rounded-3xl shadow-[var(--shadow-card)]">
+              {v.current ? (
+                <BeforeAfter before={fileUrl(roomId, v.file)} after={fileUrl(roomId, v.current)} alt={v.label} />
+              ) : (
+                <div className="shimmer relative">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={fileUrl(roomId, v.file)} alt="" className="aspect-video w-full object-cover opacity-80 blur-[1px]" />
+                  <span className="absolute bottom-3 left-3 rounded-full bg-card/90 px-3 py-1 text-xs font-medium">
+                    {i === 0 ? "Restyling…" : "Furnishing…"}
+                  </span>
                 </div>
-              </div>
-            )}
-            <figcaption className="px-3 py-2 text-xs text-muted">
+              )}
+            </div>
+            <figcaption className="mt-2 px-1 text-xs text-muted">
               {v.kind === "main" ? "Your room" : `Your ${v.label.replace(" floor", "")}`}
+              {v.current && " · drag to compare"}
             </figcaption>
           </figure>
         ))}
       </div>
 
       {look.status === "done" && (
-        <section className="mt-8">
+        <section className="mt-12">
           <div className="flex items-baseline justify-between">
-            <h2 className="text-lg font-semibold">Real pieces in your design</h2>
-            {look.shop.count > 0 && (
-              <span className="text-sm tabular-nums text-muted">{money(look.shop.total)}</span>
-            )}
+            <p className="eyebrow">Real pieces in this design</p>
+            {look.shop.count > 0 && <span className="text-[15px] font-medium tabular-nums">{money(look.shop.total)}</span>}
           </div>
-          {(look.products ?? []).length > 0 ? (
+          {products.length > 0 ? (
             <>
-              <p className="mt-1 text-sm text-muted">
-                These are real Westwing products, drawn into your photo. Everything else is a design idea.
+              <p className="mt-2 text-sm leading-relaxed text-muted">
+                Real Westwing products, drawn into your photo. Everything else is a design idea.
               </p>
-              <ul className="mt-3 space-y-3">
-                {look.products.map((u) => (
-                  <UsedProduct key={u.product.id} use={u} />
+              <ul className="mt-4 space-y-3">
+                {products.map((u, i) => (
+                  <UsedProduct key={u.product.id} use={u} index={i} />
                 ))}
               </ul>
             </>
           ) : (
-            <p className="mt-1 text-sm text-muted">
+            <p className="mt-2 text-sm text-muted">
               Nothing in our catalog fits this look yet, so every piece is a design idea.
             </p>
           )}
@@ -166,39 +225,47 @@ export function LookView({
       )}
 
       {look.status === "done" && (
-        <section className="sticky bottom-3 mt-8 rounded-2xl bg-card/95 p-3 shadow-lg ring-1 ring-line backdrop-blur">
-          <div className="flex gap-2 overflow-x-auto pb-2">
+        <section className="mt-12">
+          <p className="eyebrow">Try a change</p>
+          <div className="mt-3 flex flex-wrap gap-2">
             {QUICK.map((q) => (
               <button
                 key={q}
                 disabled={busy}
                 onClick={() => onRevise(q)}
-                className="shrink-0 rounded-full bg-paper px-3 py-1.5 text-sm ring-1 ring-line disabled:opacity-50"
+                className="rounded-full bg-veil px-3.5 py-2 text-sm transition active:scale-95 disabled:opacity-50"
               >
                 {q}
               </button>
             ))}
           </div>
-          <form
-            className="flex gap-2"
-            onSubmit={(e) => {
-              e.preventDefault();
-              if (text.trim()) onRevise(text.trim());
-              setText("");
-            }}
-          >
-            <input
-              value={text}
-              onChange={(e) => setText(e.target.value)}
-              disabled={busy}
-              placeholder="Tell the stylist what to change"
-              className="min-w-0 flex-1 rounded-xl bg-paper px-3 py-2.5 text-sm outline-none ring-1 ring-line focus:ring-brand-strong"
-            />
-            <button disabled={busy} className="rounded-xl bg-ink px-4 text-sm font-medium text-white disabled:opacity-50">
-              Send
-            </button>
-          </form>
         </section>
+      )}
+
+      {look.status === "done" && (
+        <form
+          className="sticky bottom-4 mt-6 flex gap-2 rounded-3xl bg-card/95 p-2 shadow-[var(--shadow-float)] backdrop-blur"
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (text.trim()) onRevise(text.trim());
+            setText("");
+          }}
+        >
+          <input
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            disabled={busy}
+            placeholder="Tell the stylist what to change"
+            className="min-w-0 flex-1 rounded-2xl bg-transparent px-3 py-3 text-[15px] outline-none placeholder:text-muted/70"
+          />
+          <button
+            disabled={busy || !text.trim()}
+            aria-label="Send"
+            className="grid size-12 shrink-0 place-items-center rounded-2xl bg-ink text-lg text-white transition active:scale-95 disabled:opacity-30"
+          >
+            ↑
+          </button>
+        </form>
       )}
     </div>
   );

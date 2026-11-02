@@ -9,20 +9,20 @@ const TOTAL_CONCEPTS = 23; // backend/app/pipeline/concepts.py
 export function Analysis({ roomId, onDone }: { roomId: string; onDone: () => void }) {
   const [found, setFound] = useState<{ concept: string; count: number }[]>([]);
   const [checked, setChecked] = useState(0);
-  const [stage, setStage] = useState("Preparing your video…");
+  const [stage, setStage] = useState("Preparing your video");
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const es = new EventSource(`${API}/api/rooms/${roomId}/events`);
     es.onmessage = (msg) => {
       const e = JSON.parse(msg.data) as ProgressEvent;
-      if (e.type === "keyframes") setStage("Uploading to SAM 3.1…");
-      if (e.type === "uploaded") setStage("Looking for furniture…");
+      if (e.type === "keyframes") setStage("Sending it to SAM 3.1");
+      if (e.type === "uploaded") setStage("Finding your furniture");
       if (e.type === "found") {
         setChecked((n) => n + 1);
         if (e.count > 0) setFound((f) => [...f, { concept: e.concept, count: e.count }]);
       }
-      if (e.type === "done") setStage("Done");
+      if (e.type === "done") setStage("Your room is mapped");
       if (e.type === "status") {
         es.close();
         if (e.status === "done") onDone();
@@ -36,27 +36,42 @@ export function Analysis({ roomId, onDone }: { roomId: string; onDone: () => voi
     return () => es.close();
   }, [roomId, onDone]);
 
-  const pct = Math.round((checked / TOTAL_CONCEPTS) * 100);
+  const pct = Math.max(4, Math.round((checked / TOTAL_CONCEPTS) * 100));
   return (
-    <div className="pt-8">
-      <p className="text-sm text-muted">Analyzing your room</p>
-      <h1 className="mt-1 text-2xl font-semibold">{stage}</h1>
-      <div className="mt-5 h-2 overflow-hidden rounded-full bg-line">
-        <div className="h-full rounded-full bg-brand-strong transition-all duration-500" style={{ width: `${pct}%` }} />
+    <div className="pt-10">
+      <p className="eyebrow">Analyzing your room</p>
+      <h1 className="mt-2 flex items-center gap-3 text-[28px] font-semibold tracking-tight">
+        {stage}
+        <span className="breathe size-2 rounded-full bg-ink" />
+      </h1>
+
+      <div className="mt-8 h-1.5 overflow-hidden rounded-full bg-veil">
+        <div className="h-full rounded-full bg-ink transition-all duration-700" style={{ width: `${pct}%` }} />
       </div>
-      <p className="mt-2 text-xs text-muted">
-        {checked}/{TOTAL_CONCEPTS} kinds of things checked · usually 3–5 minutes
+      <p className="mt-3 text-sm text-muted">
+        {checked} of {TOTAL_CONCEPTS} kinds of things checked · usually 3–5 minutes
       </p>
 
-      <ul className="mt-8 flex flex-wrap gap-2">
-        {found.map((f) => (
-          <li key={f.concept} className="pop-in rounded-full bg-card px-3 py-1.5 text-sm shadow-sm ring-1 ring-line">
-            {f.concept}
-            {f.count > 1 && <span className="ml-1 text-muted">×{f.count}</span>}
-          </li>
-        ))}
-      </ul>
-      {error && <p className="mt-6 text-sm text-warn">{error}</p>}
+      <section className="mt-10">
+        <p className="eyebrow">Found so far</p>
+        {found.length === 0 ? (
+          <div className="mt-4 flex gap-2">
+            {[72, 96, 60].map((w) => (
+              <span key={w} className="shimmer h-9 rounded-full bg-veil" style={{ width: w }} />
+            ))}
+          </div>
+        ) : (
+          <ul className="mt-4 flex flex-wrap gap-2">
+            {found.map((f) => (
+              <li key={f.concept} className="pop-in rounded-full bg-card px-3.5 py-2 text-sm shadow-[var(--shadow-card)]">
+                {f.concept}
+                {f.count > 1 && <span className="ml-1.5 text-muted">×{f.count}</span>}
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+      {error && <p className="mt-8 text-sm text-warn">{error}</p>}
     </div>
   );
 }
