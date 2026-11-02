@@ -18,8 +18,11 @@ phone, played as a carousel with step tabs below the stage:
 
 Screens swap like one app: the body crossfades with an 8 pt rise; the phone
 and its chrome stay. Sizes inside the screen are iPhone points (402 pt wide,
-drawn at ~0.7), so app text renders at 11 to 13 px. Stage: 400 x 470, compact
-358 x 440 (phone 340 / 326). The page is the ground: transparent stage.
+drawn at ~0.7), so app text renders at 11 to 13 px. Stage: 400 x 510, compact
+358 x 480 (phone 340 / 326). The page is the ground: transparent stage. The
+phone's foot fades out over the last 40 px of the stage; that band holds only
+the screen's empty foot (each scene's last control ends 10+ px above it), and
+the phone's shadow stays inside the side gutter so the stage never cuts it.
 
 **Poster:** the last scene with the product card in (the payoff); the tabs show
 step 3 under reduced motion to match.

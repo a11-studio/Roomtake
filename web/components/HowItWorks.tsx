@@ -231,8 +231,8 @@ export function HowItWorks() {
       <Stage<S>
         key={`run-${run}`}
         width={400}
-        height={470}
-        compact={{ below: 400, width: 358, height: 440 }}
+        height={510}
+        compact={{ below: 400, width: 358, height: 480 }}
         initial={{ ...START, step: start }}
         poster={POSTER}
         script={script}
