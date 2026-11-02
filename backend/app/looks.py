@@ -29,7 +29,7 @@ from app.agent.stylist import describe_items, revise_brief, style_brief
 from app.catalog import Product, get_product, search_products
 from app.pipeline import sam
 from app.render import muse_image
-from app.render.restyle import concept_masks, restyle_view
+from app.render.restyle import concept_masks, object_mask, restyle_view
 
 # What we look for in a restyled view to sell it. "table" catches the new
 # pieces that are not exactly a coffee/side table (e.g. a balcony bistro table).
@@ -98,6 +98,18 @@ async def _restyle(room_dir: Path, room: dict, look: dict) -> None:
     await asyncio.gather(*(one(i, v) for i, v in enumerate(look["views"])))
 
 
+def _kept_masks(room_dir: Path, look: dict, w: int, h: int) -> dict[int, list[np.ndarray]]:
+    """Per view: masks of the items the user keeps; those are not for sale."""
+    room = json.loads((room_dir / "room.json").read_text())
+    objects = {o["id"]: o for o in room["objects"]}
+    out: dict[int, list[np.ndarray]] = {}
+    for i, v in enumerate(look["views"]):
+        masks = [object_mask(room_dir, objects[k], v["frame"], w, h)
+                 for k in (look.get("brief") or {}).get("keep", []) if k in objects]
+        out[i] = [m for m in masks if m is not None]
+    return out
+
+
 async def _shop(room_dir: Path, look: dict) -> None:
     d = look_dir(room_dir, look["id"])
     views = look["views"]
@@ -142,6 +154,9 @@ async def _shop(room_dir: Path, look: dict) -> None:
             "mean": round(float(np.mean(list(ious.values()) + [0.0] * len(missing))), 2) if before else None,
             "pieces": {c: round(v, 2) for c, v in ious.items()} | {c: 0.0 for c in missing},
         }
+
+    kept = _kept_masks(room_dir, look, w, h)
+    found = [x for x in found if not any((x[3] & k).sum() > 0.5 * x[3].sum() for k in kept[x[0]])]
 
     # one item per physical thing: drop overlaps between concepts ("table" vs "coffee table")
     found.sort(key=lambda x: -x[3].sum())

@@ -57,6 +57,20 @@ def _ld_products(html: str) -> list[dict]:
     return out
 
 
+def _image(node: dict) -> str | None:
+    """schema.org image: a URL, an ImageObject, or a list of either."""
+    img = node.get("image")
+    img = img[0] if isinstance(img, list) and img else img
+    if isinstance(img, dict):
+        img = img.get("url") or img.get("contentUrl")
+    return img if isinstance(img, str) else None
+
+
+def _offer(node: dict) -> dict:
+    offer = node.get("offers") or {}
+    return (offer[0] if offer else {}) if isinstance(offer, list) else offer
+
+
 def _cm(v: dict | None) -> float | None:
     return float(v["value"]) if isinstance(v, dict) and v.get("value") is not None else None
 
@@ -93,7 +107,7 @@ async def import_url(url: str) -> list[dict]:
         raise ValueError("No product data found on that page.")
 
     first = variants[0]
-    image = (first.get("image") or first.get("_group", {}).get("image") or [None])[0]
+    image = _image(first) or _image(first.get("_group", {}))
     if not image:
         raise ValueError("The product has no image.")
     group_name = first.get("_group", {}).get("name") or first["name"]
@@ -105,8 +119,8 @@ async def import_url(url: str) -> list[dict]:
         if sku in seen:
             continue
         seen.add(sku)
-        offer = v.get("offers") or {}
-        img = (v.get("image") or [image])[0]
+        offer = _offer(v)
+        img = _image(v) or image
         out.append(Product(
             id="westwing-" + re.sub(r"[^A-Za-z0-9-]", "", sku),
             name=v["name"],
