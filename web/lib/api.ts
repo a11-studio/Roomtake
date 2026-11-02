@@ -1,6 +1,10 @@
 // Thin client for the FastAPI backend (backend/app/main.py).
 
-export const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+// Default: port 8000 on whatever host served the page, so the same dev build
+// works on this Mac (localhost) and on a phone on the same Wi-Fi (192.168.x.x).
+export const API =
+  process.env.NEXT_PUBLIC_API_URL ??
+  (typeof window === "undefined" ? "http://localhost:8000" : `http://${window.location.hostname}:8000`);
 
 export type RoomObject = {
   id: string;

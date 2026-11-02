@@ -39,7 +39,9 @@ SAFE_ID = re.compile(r"^[A-Za-z0-9_-]+$")
 app = FastAPI(title="Roomtake")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    # any port on this machine or the home network, so a phone on the same
+    # Wi-Fi can open the dev web app (http://192.168.x.x:3000)
+    allow_origin_regex=r"http://(localhost|127\.0\.0\.1|192\.168\.\d+\.\d+|10\.\d+\.\d+\.\d+)(:\d+)?",
     allow_methods=["*"],
     allow_headers=["*"],
 )
