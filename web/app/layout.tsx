@@ -27,7 +27,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <link rel="stylesheet" href={FONT_CSS} />
       </head>
       <body className="antialiased">
-        <main className="mx-auto min-h-dvh w-full max-w-md px-5 pb-20">{children}</main>
+        <main className="mx-auto min-h-dvh w-full max-w-md px-5 pb-20 md:max-w-3xl md:px-8 lg:max-w-6xl lg:px-10">{children}</main>
       </body>
     </html>
   );

@@ -34,65 +34,72 @@ export default function Home() {
   }
 
   return (
-    <div className="isolate flex min-h-dvh flex-col pt-8">
+    <div className="isolate flex min-h-dvh flex-col pt-8 lg:pt-12">
       {/* the brand blue lives on the home page only; isolate keeps it above the white body */}
       <div aria-hidden className="fixed inset-0 -z-10 bg-brand" />
       <Image src="/RoomTake.svg" alt="Roomtake" width={78} height={60} priority />
 
-      <section className="mt-14">
-        <h1 className="text-[42px] font-semibold leading-[1.05] tracking-tight">
-          Same room.
-          <br />
-          Better take.
-        </h1>
-        <p className="mt-5 max-w-[30ch] text-[17px] leading-relaxed text-muted">
-          Your own room, redesigned around how you live in it, with pieces you can actually buy.
-        </p>
-      </section>
+      {/* Phone: headline, steps, buttons at the bottom. Desktop: headline and
+          buttons on the left, steps in a card on the right. */}
+      <div className="flex flex-1 flex-col lg:grid lg:grid-cols-[minmax(0,1fr)_400px] lg:gap-x-20 lg:py-16">
+        <section className="mt-14 lg:col-start-1 lg:row-start-1 lg:mt-0 lg:self-end">
+          <h1 className="text-[42px] font-semibold leading-[1.05] tracking-tight lg:text-[72px] lg:leading-[1]">
+            Same room.
+            <br />
+            Better take.
+          </h1>
+          <p className="mt-5 max-w-[30ch] text-[17px] leading-relaxed text-muted lg:mt-8 lg:text-xl">
+            Your own room, redesigned around how you live in it, with pieces you can actually buy.
+          </p>
+        </section>
 
-      <ol className="mt-12 space-y-5">
-        {STEPS.map(([title, text], i) => (
-          <li key={title} className="flex gap-4">
-            <span className="grid size-8 shrink-0 place-items-center rounded-full bg-card text-sm font-semibold shadow-[var(--shadow-card)]">
-              {i + 1}
-            </span>
-            <div>
-              <p className="font-medium">{title}</p>
-              <p className="text-sm text-muted">{text}</p>
-            </div>
-          </li>
-        ))}
-      </ol>
+        <ol className="mt-12 space-y-5 lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:mt-0 lg:space-y-7 lg:self-center lg:rounded-3xl lg:bg-card/70 lg:p-9 lg:shadow-[var(--shadow-card)]">
+          {STEPS.map(([title, text], i) => (
+            <li key={title} className="flex gap-4">
+              <span className="grid size-8 shrink-0 place-items-center rounded-full bg-card text-sm font-semibold shadow-[var(--shadow-card)]">
+                {i + 1}
+              </span>
+              <div>
+                <p className="font-medium">{title}</p>
+                <p className="text-sm text-muted">{text}</p>
+              </div>
+            </li>
+          ))}
+        </ol>
 
-      <div className="mt-auto space-y-3 pt-14">
-        <input
-          ref={input}
-          type="file"
-          accept="video/*"
-          capture="environment"
-          className="hidden"
-          onChange={(e) => onFile(e.target.files?.[0])}
-        />
-        <button
-          onClick={() => input.current?.click()}
-          disabled={progress !== null}
-          className="relative w-full overflow-hidden rounded-2xl bg-ink py-4 text-base font-medium text-white transition active:scale-[0.99] disabled:opacity-90"
-        >
-          {progress !== null && (
-            <span className="absolute inset-y-0 left-0 bg-white/15 transition-all" style={{ width: `${progress}%` }} />
-          )}
-          <span className="relative">{progress === null ? "Film your room" : `Uploading… ${progress}%`}</span>
-        </button>
-        <Link
-          href={`/room/${DEMO_ROOM}`}
-          className="block w-full rounded-2xl bg-card py-4 text-center text-base font-medium shadow-[var(--shadow-card)] transition active:scale-[0.99]"
-        >
-          Try our demo living room
-        </Link>
-        {error && <p className="text-center text-sm text-warn">{error}</p>}
-        <Link href="/curate" className="block pt-3 text-center text-xs text-muted underline-offset-4 hover:underline">
-          Product catalog
-        </Link>
+        <div className="mt-auto space-y-3 pt-14 lg:col-start-1 lg:row-start-2 lg:mt-10 lg:max-w-md lg:self-start lg:pt-0">
+          <input
+            ref={input}
+            type="file"
+            accept="video/*"
+            capture="environment"
+            className="hidden"
+            onChange={(e) => onFile(e.target.files?.[0])}
+          />
+          <button
+            onClick={() => input.current?.click()}
+            disabled={progress !== null}
+            className="relative w-full overflow-hidden rounded-2xl bg-ink py-4 text-base font-medium text-white transition active:scale-[0.99] disabled:opacity-90"
+          >
+            {progress !== null && (
+              <span
+                className="absolute inset-y-0 left-0 bg-white/15 transition-all"
+                style={{ width: `${progress}%` }}
+              />
+            )}
+            <span className="relative">{progress === null ? "Film your room" : `Uploading… ${progress}%`}</span>
+          </button>
+          <Link
+            href={`/room/${DEMO_ROOM}`}
+            className="block w-full rounded-2xl bg-card py-4 text-center text-base font-medium shadow-[var(--shadow-card)] transition active:scale-[0.99]"
+          >
+            Try our demo living room
+          </Link>
+          {error && <p className="text-center text-sm text-warn">{error}</p>}
+          <Link href="/curate" className="block pt-3 text-center text-xs text-muted underline-offset-4 hover:underline">
+            Product catalog
+          </Link>
+        </div>
       </div>
     </div>
   );

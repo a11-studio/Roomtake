@@ -38,115 +38,125 @@ export function Preferences({
   // one chip per kind of furniture ("chair ×4" keeps all four)
   const furniture = useMemo(() => {
     const g = new Map<string, string[]>();
-    room.objects.filter((o) => o.category === "furniture").forEach((o) => g.set(o.label, [...(g.get(o.label) ?? []), o.id]));
+    room.objects
+      .filter((o) => o.category === "furniture")
+      .forEach((o) => g.set(o.label, [...(g.get(o.label) ?? []), o.id]));
     return [...g.entries()];
   }, [room]);
   const freeZone = room.views.find((v) => v.kind === "zone");
   const fill = ((budget - BUDGET.min) / (BUDGET.max - BUDGET.min)) * 100;
 
   return (
-    <div className="pt-6">
-      <div className="-mx-5 flex snap-x gap-3 overflow-x-auto px-5 pb-1 [scrollbar-width:none]">
+    <div className="pt-6 lg:pt-10">
+      <div className="-mx-5 flex snap-x gap-3 overflow-x-auto px-5 pb-1 [scrollbar-width:none] md:-mx-8 md:px-8 lg:mx-0 lg:px-0">
         {room.keyframes.map((k) => (
           // eslint-disable-next-line @next/next/no-img-element
           <img
             key={k.file}
             src={fileUrl(roomId, k.file)}
             alt=""
-            className="aspect-[4/3] w-60 shrink-0 snap-start rounded-2xl object-cover shadow-[var(--shadow-card)]"
+            className="aspect-[4/3] w-60 shrink-0 snap-start rounded-2xl object-cover shadow-[var(--shadow-card)] lg:w-72"
           />
         ))}
       </div>
 
-      <section className="mt-8">
-        <p className="eyebrow">Your room</p>
-        <h1 className="mt-2 text-[28px] font-semibold tracking-tight">We found {room.objects.length} things</h1>
-        <p className="mt-2 text-[15px] leading-relaxed text-muted">
-          {counts.map(([label, n]) => (n > 1 ? `${n} ${label}s` : label)).join(", ")}.
-          {freeZone && ` Plus an empty ${freeZone.label.replace(" floor", "")}, ready for something new.`}
-        </p>
-      </section>
+      <div className="lg:mt-4 lg:grid lg:grid-cols-[minmax(0,1fr)_380px] lg:gap-x-14">
+        <div>
+          <section className="mt-8">
+            <p className="eyebrow">Your room</p>
+            <h1 className="mt-2 text-[28px] font-semibold tracking-tight lg:text-[36px]">
+              We found {room.objects.length} things
+            </h1>
+            <p className="mt-2 text-[15px] leading-relaxed text-muted">
+              {counts.map(([label, n]) => (n > 1 ? `${n} ${label}s` : label)).join(", ")}.
+              {freeZone && ` Plus an empty ${freeZone.label.replace(" floor", "")}, ready for something new.`}
+            </p>
+          </section>
 
-      <section className="mt-10">
-        <p className="eyebrow">Style</p>
-        <div className="mt-3 grid grid-cols-2 gap-3">
-          {STYLES.map((s) => {
-            const on = style === s.name;
-            return (
-              <button
-                key={s.name}
-                onClick={() => setStyle(on ? undefined : s.name)}
-                aria-pressed={on}
-                className={`rounded-2xl p-3.5 text-left transition active:scale-[0.98] ${
-                  on ? "bg-ink text-white shadow-[var(--shadow-float)]" : "bg-card shadow-[var(--shadow-card)]"
-                }`}
-              >
-                <span className="flex">
-                  {s.swatches.map((c, i) => (
-                    <span
-                      key={c}
-                      className={`size-6 rounded-full ring-2 ${on ? "ring-ink" : "ring-card"} ${i ? "-ml-1.5" : ""}`}
-                      style={{ background: c }}
-                    />
-                  ))}
-                </span>
-                <span className="mt-3 block text-[15px] font-medium">{s.name}</span>
-                <span className={`block text-xs ${on ? "text-white/70" : "text-muted"}`}>{s.hint}</span>
-              </button>
-            );
-          })}
+          <section className="mt-10">
+            <p className="eyebrow">Style</p>
+            <div className="mt-3 grid grid-cols-2 gap-3 md:grid-cols-3">
+              {STYLES.map((s) => {
+                const on = style === s.name;
+                return (
+                  <button
+                    key={s.name}
+                    onClick={() => setStyle(on ? undefined : s.name)}
+                    aria-pressed={on}
+                    className={`rounded-2xl p-3.5 text-left transition active:scale-[0.98] ${
+                      on ? "bg-ink text-white shadow-[var(--shadow-float)]" : "bg-card shadow-[var(--shadow-card)]"
+                    }`}
+                  >
+                    <span className="flex">
+                      {s.swatches.map((c, i) => (
+                        <span
+                          key={c}
+                          className={`size-6 rounded-full ring-2 ${on ? "ring-ink" : "ring-card"} ${i ? "-ml-1.5" : ""}`}
+                          style={{ background: c }}
+                        />
+                      ))}
+                    </span>
+                    <span className="mt-3 block text-[15px] font-medium">{s.name}</span>
+                    <span className={`block text-xs ${on ? "text-white/70" : "text-muted"}`}>{s.hint}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </section>
         </div>
-      </section>
 
-      <section className="mt-10">
-        <div className="flex items-baseline justify-between">
-          <p className="eyebrow">Budget for real pieces</p>
-          <span className="text-[15px] font-medium tabular-nums">€{budget.toLocaleString("en-IE")}</span>
-        </div>
-        <input
-          type="range"
-          min={BUDGET.min}
-          max={BUDGET.max}
-          step={BUDGET.step}
-          value={budget}
-          onChange={(e) => setBudget(Number(e.target.value))}
-          className="range mt-5 w-full"
-          style={{ ["--fill" as string]: `${fill}%` }}
-          aria-label="Budget"
-        />
-      </section>
+        <aside className="lg:mt-8 lg:self-start lg:rounded-3xl lg:bg-[#f7f4f1] lg:p-7">
+          <section className="mt-10 lg:mt-0">
+            <div className="flex items-baseline justify-between">
+              <p className="eyebrow">Budget for real pieces</p>
+              <span className="text-[15px] font-medium tabular-nums">€{budget.toLocaleString("en-IE")}</span>
+            </div>
+            <input
+              type="range"
+              min={BUDGET.min}
+              max={BUDGET.max}
+              step={BUDGET.step}
+              value={budget}
+              onChange={(e) => setBudget(Number(e.target.value))}
+              className="range mt-5 w-full"
+              style={{ ["--fill" as string]: `${fill}%` }}
+              aria-label="Budget"
+            />
+          </section>
 
-      <section className="mt-10">
-        <p className="eyebrow">Keep as it is</p>
-        <div className="mt-3 flex flex-wrap gap-2">
-          {furniture.map(([label, ids]) => {
-            const on = ids.every((i) => keep.includes(i));
-            return (
-              <button
-                key={label}
-                onClick={() => setKeep(on ? keep.filter((k) => !ids.includes(k)) : [...new Set([...keep, ...ids])])}
-                aria-pressed={on}
-                className={`rounded-full px-3.5 py-2 text-sm transition ${on ? "bg-ink text-white" : "bg-veil"}`}
-              >
-                {on && "✓ "}
-                {label}
-                {ids.length > 1 && <span className={on ? "text-white/60" : "text-muted"}> ×{ids.length}</span>}
-              </button>
-            );
-          })}
-        </div>
-      </section>
+          <section className="mt-10">
+            <p className="eyebrow">Keep as it is</p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {furniture.map(([label, ids]) => {
+                const on = ids.every((i) => keep.includes(i));
+                return (
+                  <button
+                    key={label}
+                    onClick={() => setKeep(on ? keep.filter((k) => !ids.includes(k)) : [...new Set([...keep, ...ids])])}
+                    aria-pressed={on}
+                    className={`rounded-full px-3.5 py-2 text-sm transition ${on ? "bg-ink text-white" : "bg-veil"}`}
+                  >
+                    {on && "✓ "}
+                    {label}
+                    {ids.length > 1 && <span className={on ? "text-white/60" : "text-muted"}> ×{ids.length}</span>}
+                  </button>
+                );
+              })}
+            </div>
+          </section>
 
-      <div className="sticky bottom-4 mt-12">
-        <button
-          onClick={() => onSubmit({ style, budget, keep })}
-          disabled={busy}
-          className="w-full rounded-2xl bg-ink py-4 text-base font-medium text-white shadow-[var(--shadow-float)] transition active:scale-[0.99] disabled:opacity-80"
-        >
-          {busy ? "Starting…" : style ? `Show my room in ${style}` : "Surprise me with a style"}
-        </button>
+          <div className="sticky bottom-4 mt-12 lg:static lg:mt-10">
+            <button
+              onClick={() => onSubmit({ style, budget, keep })}
+              disabled={busy}
+              className="w-full rounded-2xl bg-ink py-4 text-base font-medium text-white shadow-[var(--shadow-float)] transition active:scale-[0.99] disabled:opacity-80"
+            >
+              {busy ? "Starting…" : style ? `Show my room in ${style}` : "Surprise me with a style"}
+            </button>
+          </div>
+          <p className="mt-3 text-center text-xs text-muted">Same room, same layout, new look · about a minute</p>
+        </aside>
       </div>
-      <p className="mt-3 text-center text-xs text-muted">Same room, same layout, new look · about a minute</p>
     </div>
   );
 }

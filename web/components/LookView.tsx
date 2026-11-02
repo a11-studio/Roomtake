@@ -66,7 +66,13 @@ function Progress({ status }: { status: Look["status"] }) {
                   state === "done" ? "bg-ink text-white" : state === "now" ? "bg-veil" : "bg-line"
                 }`}
               >
-                {state === "done" ? "✓" : state === "now" ? <span className="breathe size-2 rounded-full bg-ink" /> : ""}
+                {state === "done" ? (
+                  "✓"
+                ) : state === "now" ? (
+                  <span className="breathe size-2 rounded-full bg-ink" />
+                ) : (
+                  ""
+                )}
               </span>
               <div className={state === "next" ? "opacity-45" : ""}>
                 <p className="text-[15px] font-medium">{s.label}</p>
@@ -140,42 +146,51 @@ export function LookView({
   const working = look.status !== "done" && look.status !== "error";
   const products = look.products ?? [];
 
+  // Phone: header, views, details stacked. Desktop: views on the left, header
+  // and details in a column on the right.
   return (
-    <div className="pt-8">
-      <p className="eyebrow">{look.instruction ? `“${look.instruction}”` : "Your room, restyled"}</p>
-      {look.brief ? (
-        <>
-          <h1 className="pop-in mt-2 text-[30px] font-semibold leading-tight tracking-tight">{look.brief.title}</h1>
-          <p className={`pop-in mt-3 text-[15px] leading-relaxed text-muted ${more ? "" : "line-clamp-3"}`}>
-            {look.brief.why ?? look.brief.summary}
+    <div className="pt-8 lg:grid lg:grid-cols-[minmax(0,1fr)_400px] lg:gap-x-14 lg:pt-10">
+      <header className="lg:col-start-2 lg:row-start-1">
+        <p className="eyebrow">{look.instruction ? `“${look.instruction}”` : "Your room, restyled"}</p>
+        {look.brief ? (
+          <>
+            <h1 className="pop-in mt-2 text-[30px] font-semibold leading-tight tracking-tight lg:text-[36px]">
+              {look.brief.title}
+            </h1>
+            <p className={`pop-in mt-3 text-[15px] leading-relaxed text-muted ${more ? "" : "line-clamp-3"}`}>
+              {look.brief.why ?? look.brief.summary}
+            </p>
+            {!more && (
+              <button
+                onClick={() => setMore(true)}
+                className="mt-1 text-sm font-medium underline-offset-4 hover:underline"
+              >
+                Read more
+              </button>
+            )}
+            {look.brief.palette && (
+              <ul className="pop-in mt-4 flex flex-wrap gap-1.5">
+                {[...new Set(look.brief.palette)].slice(0, 5).map((p) => (
+                  <li key={p} className="rounded-full bg-veil px-3 py-1 text-xs">
+                    {p}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </>
+        ) : (
+          <h1 className="mt-2 text-[30px] font-semibold tracking-tight lg:text-[36px]">Designing your look</h1>
+        )}
+
+        {working && <Progress status={look.status} />}
+        {look.status === "error" && (
+          <p className="mt-8 rounded-2xl bg-card p-4 text-sm text-warn shadow-[var(--shadow-card)]">
+            Something went wrong: {look.error}
           </p>
-          {!more && (
-            <button onClick={() => setMore(true)} className="mt-1 text-sm font-medium underline-offset-4 hover:underline">
-              Read more
-            </button>
-          )}
-          {look.brief.palette && (
-            <ul className="pop-in mt-4 flex flex-wrap gap-1.5">
-              {[...new Set(look.brief.palette)].slice(0, 5).map((p) => (
-                <li key={p} className="rounded-full bg-veil px-3 py-1 text-xs">
-                  {p}
-                </li>
-              ))}
-            </ul>
-          )}
-        </>
-      ) : (
-        <h1 className="mt-2 text-[30px] font-semibold tracking-tight">Designing your look</h1>
-      )}
+        )}
+      </header>
 
-      {working && <Progress status={look.status} />}
-      {look.status === "error" && (
-        <p className="mt-8 rounded-2xl bg-card p-4 text-sm text-warn shadow-[var(--shadow-card)]">
-          Something went wrong: {look.error}
-        </p>
-      )}
-
-      <div className="mt-8 space-y-5">
+      <div className="mt-8 space-y-6 lg:col-start-1 lg:row-span-2 lg:row-start-1 lg:mt-0">
         {look.views.map((v, i) => (
           <figure key={v.file}>
             <div className="overflow-hidden rounded-3xl shadow-[var(--shadow-card)]">
@@ -184,7 +199,11 @@ export function LookView({
               ) : (
                 <div className="shimmer relative">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={fileUrl(roomId, v.file)} alt="" className="aspect-video w-full object-cover opacity-80 blur-[1px]" />
+                  <img
+                    src={fileUrl(roomId, v.file)}
+                    alt=""
+                    className="aspect-video w-full object-cover opacity-80 blur-[1px]"
+                  />
                   <span className="absolute bottom-3 left-3 rounded-full bg-card/90 px-3 py-1 text-xs font-medium">
                     {i === 0 ? "Restyling…" : "Furnishing…"}
                   </span>
@@ -200,72 +219,71 @@ export function LookView({
       </div>
 
       {look.status === "done" && (
-        <section className="mt-12">
-          <div className="flex items-baseline justify-between">
-            <p className="eyebrow">Real pieces in this design</p>
-            {look.shop.count > 0 && <span className="text-[15px] font-medium tabular-nums">{money(look.shop.total)}</span>}
-          </div>
-          {products.length > 0 ? (
-            <>
-              <p className="mt-2 text-sm leading-relaxed text-muted">
-                Real Westwing products, drawn into your photo. Everything else is a design idea.
+        <div className="lg:col-start-2 lg:row-start-2">
+          <section className="mt-12 lg:mt-10">
+            <div className="flex items-baseline justify-between">
+              <p className="eyebrow">Real pieces in this design</p>
+              {look.shop.count > 0 && (
+                <span className="text-[15px] font-medium tabular-nums">{money(look.shop.total)}</span>
+              )}
+            </div>
+            {products.length > 0 ? (
+              <>
+                <p className="mt-2 text-sm leading-relaxed text-muted">
+                  Real Westwing products, drawn into your photo. Everything else is a design idea.
+                </p>
+                <ul className="mt-4 space-y-3">
+                  {products.map((u, i) => (
+                    <UsedProduct key={u.product.id} use={u} index={i} />
+                  ))}
+                </ul>
+              </>
+            ) : (
+              <p className="mt-2 text-sm text-muted">
+                Nothing in our catalog fits this look yet, so every piece is a design idea.
               </p>
-              <ul className="mt-4 space-y-3">
-                {products.map((u, i) => (
-                  <UsedProduct key={u.product.id} use={u} index={i} />
-                ))}
-              </ul>
-            </>
-          ) : (
-            <p className="mt-2 text-sm text-muted">
-              Nothing in our catalog fits this look yet, so every piece is a design idea.
-            </p>
-          )}
-        </section>
-      )}
+            )}
+          </section>
 
-      {look.status === "done" && (
-        <section className="mt-12">
-          <p className="eyebrow">Try a change</p>
-          <div className="mt-3 flex flex-wrap gap-2">
-            {QUICK.map((q) => (
-              <button
-                key={q}
+          <section className="mt-12">
+            <p className="eyebrow">Try a change</p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {QUICK.map((q) => (
+                <button
+                  key={q}
+                  disabled={busy}
+                  onClick={() => onRevise(q)}
+                  className="rounded-full bg-veil px-3.5 py-2 text-sm transition active:scale-95 disabled:opacity-50"
+                >
+                  {q}
+                </button>
+              ))}
+            </div>
+            <form
+              className="mt-4 flex gap-2 rounded-3xl bg-card p-2 shadow-[var(--shadow-card)] ring-1 ring-line"
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (text.trim()) onRevise(text.trim());
+                setText("");
+              }}
+            >
+              <input
+                value={text}
+                onChange={(e) => setText(e.target.value)}
                 disabled={busy}
-                onClick={() => onRevise(q)}
-                className="rounded-full bg-veil px-3.5 py-2 text-sm transition active:scale-95 disabled:opacity-50"
+                placeholder="Or tell the stylist what to change"
+                className="min-w-0 flex-1 rounded-2xl bg-transparent px-3 py-3 text-[15px] outline-none placeholder:text-muted/70"
+              />
+              <button
+                disabled={busy || !text.trim()}
+                aria-label="Send"
+                className="grid size-12 shrink-0 place-items-center rounded-2xl bg-ink text-lg text-white transition active:scale-95 disabled:opacity-30"
               >
-                {q}
+                ↑
               </button>
-            ))}
-          </div>
-        </section>
-      )}
-
-      {look.status === "done" && (
-        <form
-          className="sticky bottom-4 mt-6 flex gap-2 rounded-3xl bg-card/95 p-2 shadow-[var(--shadow-float)] backdrop-blur"
-          onSubmit={(e) => {
-            e.preventDefault();
-            if (text.trim()) onRevise(text.trim());
-            setText("");
-          }}
-        >
-          <input
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-            disabled={busy}
-            placeholder="Tell the stylist what to change"
-            className="min-w-0 flex-1 rounded-2xl bg-transparent px-3 py-3 text-[15px] outline-none placeholder:text-muted/70"
-          />
-          <button
-            disabled={busy || !text.trim()}
-            aria-label="Send"
-            className="grid size-12 shrink-0 place-items-center rounded-2xl bg-ink text-lg text-white transition active:scale-95 disabled:opacity-30"
-          >
-            ↑
-          </button>
-        </form>
+            </form>
+          </section>
+        </div>
       )}
     </div>
   );
