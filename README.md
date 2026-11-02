@@ -53,9 +53,11 @@ backend/                 Python 3.12+, uv
       stylist.py         Wonder writes the style brief; Spark revises it and describes items
       architect.py       per-item plan with catalog tools (earlier flow, API only)
     looks.py             a look: brief -> restyled views -> shop the look; make it real
-    catalog/             search_products(category, style, max_price, max_width)
-      models.py          Product + category vocabulary (matches SAM concepts)
-      dummyjson.py       source 1 of 3: DummyJSON -> ABO -> Westwing JSON
+    catalog/             search_products(category, style, max_price, max_width), prices in EUR
+      models.py          Product + category/style vocabulary (matches SAM concepts)
+      curated.py         hand-picked Westwing products: import one page, Spark classifies
+      dummyjson.py       test fallback while the curated list is empty
+  catalog/curated.json   the curated products (in git)
     render/
       muse_image.py      Muse Image edit + paste back inside the SAM region
       visualize.py       catalog product -> replace/add in the room photo
@@ -113,6 +115,15 @@ Web app: `cd web && npm install && npm run dev` → http://localhost:3000.
 
 `data/rooms/IMG_1184` (our living room) is a ready room for UI work: no upload needed.
 
+## Catalog
+
+Products are hand-picked, never crawled: open http://localhost:3000/curate, paste a
+Westwing product link (westwing.sk for EUR) and save. The page's schema.org data gives
+name, price, colour, material, dimensions and a clean packshot; Muse Spark looks at the
+packshot and fills in our category, an English title and style tags. The list lives in
+`backend/catalog/curated.json`; as soon as it has a product, the app uses it instead of
+DummyJSON. Editing is off on a public deploy (`ROOMTAKE_PUBLIC=1`).
+
 ## Spikes
 
 - `t1_sam_video.py` — T1, SAM 3.1 tracking on the full video (`report.md`, `keyframes.jpg`, `overlay.mp4`). Result: GO.
@@ -131,4 +142,4 @@ Web app: `cd web && npm install && npm run dev` → http://localhost:3000.
 ## Data & licenses
 
 - Amazon Berkeley Objects (CC BY-NC 4.0) — product metadata and images.
-- Westwing products: demo use only, every item links back to the shop.
+- Westwing products: hand-picked for the demo, every item links back to the shop.

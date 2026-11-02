@@ -75,7 +75,7 @@ def new_look(room_dir: Path, room: dict, prefs: dict, parent: dict | None = None
 
 def _score(p: Product, desc: dict) -> int:
     want = set(re.findall(r"[a-z]+", " ".join(str(desc.get(k, "")) for k in ("name", "style", "color", "material")).lower()))
-    have = set(re.findall(r"[a-z]+", " ".join(str(x or "") for x in (p.name, p.style, p.color, p.material)).lower()))
+    have = set(re.findall(r"[a-z]+", " ".join(str(x or "") for x in (p.name_en, p.name, p.style, p.color, p.material, p.category)).lower()))
     return len(want & have)
 
 
@@ -223,7 +223,7 @@ async def make_real(room_dir: Path, look: dict, item_id: str, product_id: str) -
     base = Image.open(room_dir / view["current"]).convert("RGB")
     mask = np.asarray(Image.open(room_dir / item["mask"])) > 0
     async with httpx.AsyncClient(timeout=60) as http:
-        photo = Image.open(io.BytesIO((await http.get(product.image_url)).content)).convert("RGB")
+        photo = Image.open(io.BytesIO((await http.get(product.image_for_model)).content)).convert("RGB")
     name = item["description"].get("name", item["concept"])
     prompt = (
         f"Image 1 is a photo of a room. Image 2 is a product photo of a {product.category}. "
@@ -244,5 +244,5 @@ def summary(look: dict) -> dict[str, Any]:
     """Shopping total: the product made real, else the best match, per item."""
     picks = [i["real"] or (i["matches"][0] if i["matches"] else None) for i in look["items"]]
     picks = [p for p in picks if p]
-    return {"count": len(picks), "total": round(sum(p["price"] for p in picks), 2),
-            "currency": picks[0]["currency"] if picks else None}
+    return {"count": len(picks), "total": round(sum(p.get("price_eur", p["price"]) for p in picks), 2),
+            "currency": "EUR"}

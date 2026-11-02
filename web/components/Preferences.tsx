@@ -18,7 +18,7 @@ export function Preferences({
   onSubmit: (p: Prefs) => void;
 }) {
   const [style, setStyle] = useState<string | undefined>();
-  const [budget, setBudget] = useState(1000);
+  const [budget, setBudget] = useState(2000);
   const [keep, setKeep] = useState<string[]>([]);
 
   const counts = useMemo(() => {
@@ -67,12 +67,12 @@ export function Preferences({
       <section className="mt-6">
         <div className="flex items-baseline justify-between">
           <h2 className="text-sm font-medium">Budget to shop the look</h2>
-          <span className="text-sm tabular-nums">${budget.toLocaleString()}</span>
+          <span className="text-sm tabular-nums">€{budget.toLocaleString("en-IE")}</span>
         </div>
         <input
           type="range"
           min={100}
-          max={5000}
+          max={8000}
           step={100}
           value={budget}
           onChange={(e) => setBudget(Number(e.target.value))}

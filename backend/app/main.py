@@ -29,8 +29,9 @@ from pydantic import BaseModel
 
 from app import looks
 from app.agent.architect import make_plan, revise_plan
-from app.catalog import CATEGORIES, get_product, search_products
-from app.config import DATA_DIR
+from app.catalog import CATEGORIES, STYLES, Product, add_product, all_products, get_product, remove_product, search_products
+from app.catalog.curated import import_url
+from app.config import CURATE_ENABLED, DATA_DIR
 from app.pipeline.room import analyze_room
 from app.render.visualize import visualize
 
@@ -168,6 +169,55 @@ def products(
 ) -> dict:
     hits = search_products(category, style, max_price, max_width)
     return {"categories": CATEGORIES, "products": [p.to_dict() for p in hits]}
+
+
+def curate_only() -> None:
+    if not CURATE_ENABLED:
+        raise HTTPException(403, "catalog editing is disabled on this server")
+
+
+@app.get("/api/catalog")
+def catalog() -> dict:
+    products = [p.to_dict() for p in all_products()]
+    counts = {c: sum(p["category"] == c for p in products) for c in CATEGORIES}
+    return {"categories": CATEGORIES, "styles": STYLES, "counts": counts, "products": products,
+            "source": products[0]["source"] if products else None, "editable": CURATE_ENABLED}
+
+
+class ImportRequest(BaseModel):
+    url: str
+
+
+@app.post("/api/catalog/import")
+async def catalog_import(req: ImportRequest) -> dict:
+    """Read one Westwing product page; returns its variants to review (~6 s)."""
+    curate_only()
+    try:
+        return {"variants": await import_url(req.url)}
+    except ValueError as e:
+        raise HTTPException(400, str(e)) from e
+    except Exception as e:
+        raise HTTPException(502, f"{type(e).__name__}: {e}") from e
+
+
+@app.post("/api/catalog/products")
+def catalog_add(product: dict) -> dict:
+    curate_only()
+    try:
+        p = Product.from_dict(product)
+    except TypeError as e:
+        raise HTTPException(400, f"invalid product: {e}") from e
+    if p.category not in CATEGORIES or not p.product_url.startswith("https://"):
+        raise HTTPException(400, "unknown category or bad product URL")
+    add_product(p)
+    return p.to_dict()
+
+
+@app.delete("/api/catalog/products/{product_id}")
+def catalog_remove(product_id: str) -> dict:
+    curate_only()
+    remove_product(product_id)
+    return {"removed": product_id}
 
 
 class PlanRequest(BaseModel):

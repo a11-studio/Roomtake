@@ -26,10 +26,17 @@ export type Room = {
 export type Product = {
   id: string;
   name: string;
+  name_en?: string | null;
   category: string;
+  style?: string | null;
+  color?: string | null;
+  material?: string | null;
   price: number;
   currency: string;
+  price_eur: number;
   width_cm: number | null;
+  depth_cm?: number | null;
+  height_cm?: number | null;
   image_url: string;
   product_url: string;
   source: string;
@@ -44,6 +51,10 @@ export type ProgressEvent =
   | { type: "retry"; concept: string }
   | { type: "done"; objects: number }
   | { type: "status"; status: "done" | "error" | "processing"; error?: string | null };
+
+/** Smaller product photo for thumbnails (Shopify CDN resizes on the fly). */
+export const thumb = (url: string, width = 300) =>
+  url.includes("cdn.shopify.com") ? `${url}${url.includes("?") ? "&" : "?"}width=${width}` : url;
 
 export const fileUrl = (roomId: string, path: string) => `${API}/api/rooms/${roomId}/files/${path}`;
 
@@ -123,3 +134,18 @@ export const reviseLook = (id: string, lookId: string, instruction: string) =>
   post<Look>(`${API}/api/rooms/${id}/looks/${lookId}/revise`, { instruction });
 export const makeReal = (id: string, lookId: string, itemId: string, productId: string) =>
   post<Look>(`${API}/api/rooms/${id}/looks/${lookId}/real`, { item_id: itemId, product_id: productId });
+
+export type Catalog = {
+  categories: string[];
+  styles: string[];
+  counts: Record<string, number>;
+  products: Product[];
+  source: string | null;
+  editable: boolean;
+};
+
+export const getCatalog = () => fetch(`${API}/api/catalog`).then((r) => json<Catalog>(r));
+export const importProduct = (url: string) => post<{ variants: Product[] }>(`${API}/api/catalog/import`, { url });
+export const saveProduct = (p: Product) => post<Product>(`${API}/api/catalog/products`, p);
+export const removeProduct = (id: string) =>
+  fetch(`${API}/api/catalog/products/${encodeURIComponent(id)}`, { method: "DELETE" }).then((r) => json<unknown>(r));

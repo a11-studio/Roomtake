@@ -79,6 +79,9 @@ export default function Home() {
           Try our demo living room
         </Link>
         {error && <p className="text-sm text-warn">{error}</p>}
+        <Link href="/curate" className="block pt-2 text-center text-xs text-muted underline-offset-2 hover:underline">
+          Product catalog
+        </Link>
       </div>
     </div>
   );

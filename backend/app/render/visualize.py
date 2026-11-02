@@ -65,7 +65,7 @@ async def visualize(room_dir: Path, obj: dict, product: Product, action: Action)
     frame = Image.open(room_dir / obj["best_frame"]).convert("RGB")
     mask = np.asarray(Image.open(room_dir / obj["mask"])) > 0
     async with httpx.AsyncClient(timeout=60) as http:
-        product_img = Image.open(io.BytesIO((await http.get(product.image_url)).content)).convert("RGB")
+        product_img = Image.open(io.BytesIO((await http.get(product.image_for_model)).content)).convert("RGB")
 
     t0 = time.perf_counter()
     raw, _ = await muse_image.edit(

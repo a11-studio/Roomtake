@@ -29,3 +29,6 @@ def model_api_key() -> str:
     if not key:
         raise RuntimeError("Set MODEL_API_KEY in .env (see .env.example).")
     return key
+
+# Editing the curated catalog is for us, locally; a public deploy sets ROOMTAKE_PUBLIC=1.
+CURATE_ENABLED = not os.environ.get("ROOMTAKE_PUBLIC")

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { BeforeAfter } from "@/components/BeforeAfter";
-import { fileUrl, getLook, makeReal, type Look, type LookItem, type Product } from "@/lib/api";
+import { fileUrl, getLook, makeReal, thumb, type Look, type LookItem, type Product } from "@/lib/api";
 
 const QUICK = ["Warmer and cosier", "Keep my sofa", "More plants", "Try Japandi instead"];
 
@@ -14,8 +14,7 @@ const STAGES: Record<Look["status"], string> = {
   error: "",
 };
 
-const money = (n: number, cur: string | null) =>
-  n.toLocaleString("en-US", { style: "currency", currency: cur ?? "USD", maximumFractionDigits: 0 });
+const money = (n: number) => n.toLocaleString("en-IE", { style: "currency", currency: "EUR", maximumFractionDigits: 0 });
 
 /** Polls a look until it is done; shows views as soon as each is ready. */
 function useLook(roomId: string, lookId: string) {
@@ -46,10 +45,10 @@ function ProductRow({ p }: { p: Product }) {
   return (
     <a href={p.product_url} target="_blank" rel="noreferrer" className="flex min-w-0 flex-1 items-center gap-3">
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={p.image_url} alt="" className="size-12 shrink-0 rounded-lg bg-paper object-contain" />
+      <img src={thumb(p.image_url)} alt="" className="size-12 shrink-0 rounded-lg bg-paper object-contain" />
       <div className="min-w-0 flex-1">
-        <p className="truncate text-sm font-medium">{p.name}</p>
-        <p className="text-xs text-muted">{money(p.price, p.currency)}</p>
+        <p className="truncate text-sm font-medium">{p.name_en ?? p.name}</p>
+        <p className="text-xs text-muted">{money(p.price_eur)}</p>
       </div>
     </a>
   );
@@ -187,7 +186,7 @@ export function LookView({
             <h2 className="text-lg font-semibold">Shop the look</h2>
             {look.shop.count > 0 && (
               <span className="text-sm tabular-nums text-muted">
-                {look.shop.count} items · {money(look.shop.total, look.shop.currency)}
+                {look.shop.count} items · {money(look.shop.total)}
               </span>
             )}
           </div>
