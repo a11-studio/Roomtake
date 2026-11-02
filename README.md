@@ -45,11 +45,13 @@ backend/                 Python 3.12+, uv
       room.py            video -> keyframes -> SAM -> room.json
       preview.py         debug drawings (masks + IDs)
     agent/               (Tue) architect agent on Muse Wonder
-    catalog/             (Mon eve) searchProducts(category, style, maxPrice, maxWidth)
-                         sources: DummyJSON -> Amazon Berkeley Objects -> Westwing JSON
+    catalog/             search_products(category, style, max_price, max_width)
+      models.py          Product + category vocabulary (matches SAM concepts)
+      dummyjson.py       source 1 of 3: DummyJSON -> ABO -> Westwing JSON
     render/
       muse_image.py      Muse Image edit + paste back inside the SAM region
-    main.py              (Mon eve) FastAPI
+      visualize.py       catalog product -> replace/add in the room photo
+    main.py              FastAPI
 web/                     (Mon eve) Next.js, mobile-first
 spikes/                  go/no-go tests T1–T3
 data/                    local videos/outputs (gitignored)
@@ -75,6 +77,24 @@ Add `--reuse-sam` to rebuild `room.json` from cached SAM tracks without API call
 `room.json` objects: `id, label, category, best_frame, mask, bbox, approx_size,
 color, confidence, visible_s, seen_in_keyframes`. `category: zone` marks free space (floor, an
 empty balcony) where the architect can place new products.
+
+## API
+
+```bash
+cd backend
+uv run uvicorn app.main:app --reload --port 8000
+```
+
+| | |
+|---|---|
+| `POST /api/rooms` (multipart `video`) | upload, analysis starts → `{id}` |
+| `GET /api/rooms/{id}/events` | server-sent progress: `keyframes`, `uploaded`, one `found` per concept, `done`, `status` |
+| `GET /api/rooms/{id}` | `status` + `room` (room.json) when done |
+| `GET /api/rooms/{id}/files/{path}` | frames, masks, renders |
+| `GET /api/products?category=lamp&max_price=100&max_width=60` | catalog search |
+| `POST /api/rooms/{id}/render` `{object_id, product_id, action: replace\|add}` | before/after paths; cached per combo |
+
+`data/rooms/IMG_1184` (our living room) is a ready room for UI work: no upload needed.
 
 ## Spikes
 
