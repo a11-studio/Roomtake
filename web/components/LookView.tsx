@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { BeforeAfter } from "@/components/BeforeAfter";
+import { Orb } from "@/components/Orb";
 import { fileUrl, getLook, thumb, type Look, type ProductUse } from "@/lib/api";
 
 const QUICK = ["Warmer and cosier", "Keep my sofa", "More plants", "Try Art Deco instead"];
@@ -260,19 +261,20 @@ export function LookView({
               ))}
             </div>
             <form
-              className="mt-4 flex gap-2 rounded-3xl bg-card p-2 shadow-[var(--shadow-card)] ring-1 ring-line"
+              className="mt-4 flex items-center gap-2 rounded-3xl bg-card p-2 pl-3 shadow-[var(--shadow-card)] ring-1 ring-line"
               onSubmit={(e) => {
                 e.preventDefault();
                 if (text.trim()) onRevise(text.trim());
                 setText("");
               }}
             >
+              <Orb className="size-9" active={busy || !!text.trim()} />
               <input
                 value={text}
                 onChange={(e) => setText(e.target.value)}
                 disabled={busy}
                 placeholder="Or tell the stylist what to change"
-                className="min-w-0 flex-1 rounded-2xl bg-transparent px-3 py-3 text-[15px] outline-none placeholder:text-muted/70"
+                className="min-w-0 flex-1 rounded-2xl bg-transparent px-1.5 py-3 text-[15px] outline-none placeholder:text-muted/70"
               />
               <button
                 disabled={busy || !text.trim()}
