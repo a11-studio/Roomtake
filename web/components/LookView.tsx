@@ -14,7 +14,7 @@ const STAGES: Record<Look["status"], string> = {
   error: "",
 };
 
-const money = (n: number) => n.toLocaleString("en-IE", { style: "currency", currency: "EUR", maximumFractionDigits: 0 });
+const money = (n: number | undefined) => (n ?? 0).toLocaleString("en-IE", { style: "currency", currency: "EUR", maximumFractionDigits: 0 });
 
 /** Polls a look until it is done; shows views as soon as each is ready. */
 function useLook(roomId: string, lookId: string) {
@@ -48,7 +48,7 @@ function ProductRow({ p }: { p: Product }) {
       <img src={thumb(p.image_url)} alt="" className="size-12 shrink-0 rounded-lg bg-paper object-contain" />
       <div className="min-w-0 flex-1">
         <p className="truncate text-sm font-medium">{p.name_en ?? p.name}</p>
-        <p className="text-xs text-muted">{money(p.price_eur)}</p>
+        <p className="text-xs text-muted">{money(p.price_eur ?? p.price)}</p>
       </div>
     </a>
   );

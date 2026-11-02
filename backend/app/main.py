@@ -293,6 +293,9 @@ def look_body(room_id: str, look_id: str) -> dict:
     if not SAFE_ID.match(look_id) or not (looks.look_dir(room_dir(room_id), look_id) / "look.json").exists():
         raise HTTPException(404, "look not found")
     look = looks.load_look(room_dir(room_id), look_id)
+    for item in look["items"]:  # looks saved before prices moved to EUR
+        for p in [*item["matches"], *([item["real"]] if item["real"] else [])]:
+            p.setdefault("price_eur", Product.from_dict(p).price_eur)
     return {**look, "shop": looks.summary(look)}
 
 
