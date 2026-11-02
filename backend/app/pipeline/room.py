@@ -20,6 +20,7 @@ import pickle
 import re
 import shutil
 import time
+from collections import defaultdict
 from collections.abc import Callable
 from pathlib import Path
 from typing import Any
@@ -77,6 +78,39 @@ def view_score(obs: sam.Observation, w: int, h: int, keyframes: set[int]) -> flo
 
 PARALLEL = 8
 ATTEMPTS = 3
+
+
+def pick_views(
+    concepts: dict[str, str], all_tracks: list[list[sam.Track]], w: int, h: int
+) -> list[tuple[int, str, str]]:
+    """Frames to restyle as whole views: (frame, kind, label).
+
+    main: the frame where uncut furniture covers the most of the picture (the
+    "hero" shot; on IMG_1184 the sofa corner, not the dining nook).
+    zone: for each free-space zone other than plain floor (e.g. the balcony),
+    the frame where it is large, centred and low in the picture, i.e. you look
+    at it rather than past it; only if it covers at least 3% of the frame.
+    """
+    furniture: dict[int, float] = defaultdict(float)
+    zone_best: dict[str, tuple[float, int]] = {}
+    for concept, tracks in zip(concepts, all_tracks):
+        cat = concepts[concept]
+        for track in tracks:
+            for f, o in track.observations.items():
+                if (o.confidence or 0) < MIN_CONFIDENCE:
+                    continue
+                l, t, r, b = o.box
+                area = (r - l) * (b - t) / (w * h)
+                if cat == "furniture" and l > 2 and r < w - 3:
+                    furniture[f] += area
+                elif cat == "zone" and concept != "floor" and area >= 0.03:
+                    centred = 1 - abs((l + r) / 2 / w - 0.5)
+                    score = area * centred * (b / h)
+                    if score > zone_best.get(concept, (0, -1))[0]:
+                        zone_best[concept] = (score, f)
+    views = [(max(furniture, key=furniture.get), "main", "room")] if furniture else []
+    views += [(f, "zone", concept) for concept, (_, f) in zone_best.items()]
+    return views
 
 
 async def track_concepts(
@@ -181,6 +215,7 @@ async def analyze_room(
             objects.append({
                 "id": oid,
                 "label": concept,
+                "track_id": track.object_id,
                 "category": concepts[concept],
                 "best_frame": f"frames/{frame_name(best.frame)}",
                 "mask": f"masks/{oid}.png",
@@ -196,6 +231,9 @@ async def analyze_room(
                 "seen_in_keyframes": [f"frames/{frame_name(p)}" for p in picks if p in track.observations],
             })
 
+    views = pick_views(concepts, all_tracks, w, h)
+    used.update(f for f, _, _ in views)
+
     # keep only frames something points at
     for idx in sorted(used):
         shutil.copy(frames[idx], frame_dir / frame_name(idx))
@@ -210,6 +248,8 @@ async def analyze_room(
              "brightness": round(float(np.asarray(Image.open(frame_dir / frame_name(p)).convert("L")).mean() / 255), 2)}
             for p in picks
         ],
+        "views": [{"file": f"frames/{frame_name(f)}", "frame": f, "kind": k, "label": lbl}
+                  for f, k, lbl in views],
         "objects": objects,
         "stats": {
             "concepts": len(concepts),

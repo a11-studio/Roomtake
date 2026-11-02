@@ -14,15 +14,17 @@ Runtime AI is **Meta models only**: SAM 3.1, Muse Wonder, Muse Spark, Muse Image
 
 ```
 video ──ffmpeg 10 fps/720p──▶ SAM 3.1 tracks each concept through the whole clip ──▶ room.json
-      └─sharpness──▶ 5–8 keyframes (preferred "best frame" per object)
-room.json + frames ──Muse Wonder (agent + tools: searchProducts, fits)──▶ plan
-plan + best frame + SAM mask + product photo ──Muse Image edit──▶ before/after
-"cheaper" / "keep the sofa" ──Muse Spark──▶ updated plan
+                                (inventory, masks, hero views: main room + free zones like the balcony)
+room.json + views ──Muse Wonder──▶ style brief (what each piece becomes, palette, what to keep)
+view + SAM layout map + brief ──Muse Image──▶ the whole room restyled, same layout; kept items pasted back
+restyled views ──SAM 3.1──▶ new pieces ──Muse Spark (vision)──▶ descriptions ──catalog──▶ shop the look
+"make it real" ──Muse Image──▶ an exact catalog product into the restyled view
+"warmer" / "keep my sofa" ──Muse Spark──▶ revised brief ──▶ new look
 ```
 
-Model roles: **Muse Wonder** writes the room plan once per room (~27 s, ~$0.09);
-**Muse Spark** handles small, frequent calls: iterations, UI copy, captions
-(~15 s, ~$0.02). Both read images (T3).
+A look takes ~60-85 s: brief ~12-27 s (Wonder), two views restyled in parallel
+~20-25 s, shop the look ~25-35 s. SAM also measures how well the layout was kept
+(IoU of each piece before/after; kept items score ~0.98).
 
 Room analysis tracks the full video at 10 fps: ~4–5 min for 23 concepts on a
 24 s clip. Faster modes (keyframes as images, keyframes as a 1 fps clip, ~20 s)
@@ -30,6 +32,9 @@ got details wrong: 5 chairs instead of 4, shelves split into boards in
 close-ups, small side tables missed. One track = one real object. The API
 serves a team at ~20 video frames/s total (`spikes/t1b_latency.py`), so the UI
 shows progress per concept, and demo videos are pre-processed.
+
+Model roles: **Muse Wonder** writes the style brief (and the per-item plan);
+**Muse Spark** handles small, frequent calls: revisions, item descriptions.
 
 ## Repo layout
 
@@ -45,13 +50,16 @@ backend/                 Python 3.12+, uv
       room.py            video -> keyframes -> SAM -> room.json
       preview.py         debug drawings (masks + IDs)
     agent/
-      architect.py       Wonder plans 3-5 changes with catalog tools; Spark revises
+      stylist.py         Wonder writes the style brief; Spark revises it and describes items
+      architect.py       per-item plan with catalog tools (earlier flow, API only)
+    looks.py             a look: brief -> restyled views -> shop the look; make it real
     catalog/             search_products(category, style, max_price, max_width)
       models.py          Product + category vocabulary (matches SAM concepts)
       dummyjson.py       source 1 of 3: DummyJSON -> ABO -> Westwing JSON
     render/
       muse_image.py      Muse Image edit + paste back inside the SAM region
       visualize.py       catalog product -> replace/add in the room photo
+      restyle.py         whole-view restyle with the SAM layout map; keep = original pixels
     main.py              FastAPI
 web/                     Next.js, mobile-first (see web/README.md)
 spikes/                  go/no-go tests T1–T3
@@ -93,6 +101,9 @@ uv run uvicorn app.main:app --reload --port 8000
 | `GET /api/rooms/{id}` | `status` + `room` (room.json) when done |
 | `GET /api/rooms/{id}/files/{path}` | frames, masks, renders |
 | `GET /api/products?category=lamp&max_price=100&max_width=60` | catalog search |
+| `POST /api/rooms/{id}/looks` `{style?, budget?, keep?, notes?}` | start a look → poll `GET .../looks/{look_id}` (status brief → rendering → shopping → done) |
+| `POST /api/rooms/{id}/looks/{look_id}/revise` `{instruction}` | new look from a revised brief |
+| `POST /api/rooms/{id}/looks/{look_id}/real` `{item_id, product_id}` | exact product into the restyled view |
 | `POST /api/rooms/{id}/plan` `{style?, budget?, keep?, notes?}` | Muse Wonder plan with products (~40-70 s) |
 | `POST /api/rooms/{id}/plan/revise` `{instruction}` | Muse Spark follow-up, e.g. "keep the sofa", "cheaper" (~20 s) |
 | `GET /api/rooms/{id}/plan` | current plan (every version kept as `plan_<n>.json`) |

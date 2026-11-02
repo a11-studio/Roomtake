@@ -35,29 +35,6 @@ export type Product = {
   source: string;
 };
 
-export type Change = {
-  action: "replace" | "add";
-  target_id: string;
-  target_label: string;
-  best_frame: string;
-  why: string;
-  max_width_cm: number | null;
-  fits: boolean;
-  product: Product;
-};
-
-export type Plan = {
-  version: number;
-  summary: string;
-  style: string;
-  changes: Change[];
-  total: number;
-  currency: string | null;
-  within_budget: boolean;
-  instruction?: string;
-  meta: { model: string; seconds: number };
-};
-
 export type Preferences = { style?: string; budget?: number; keep?: string[]; notes?: string };
 
 export type ProgressEvent =
@@ -95,28 +72,54 @@ export function uploadVideo(file: File, onProgress: (pct: number) => void): Prom
 export const getRoom = (id: string) =>
   fetch(`${API}/api/rooms/${id}`).then((r) => json<{ status: string; room?: Room; error?: string }>(r));
 
-export const getPlan = async (id: string): Promise<Plan | null> => {
-  const r = await fetch(`${API}/api/rooms/${id}/plan`);
-  return r.status === 404 ? null : json<Plan>(r);
+export type LookItem = {
+  id: string;
+  view: number;
+  concept: string;
+  crop: string;
+  description: { category?: string; name?: string; style?: string; color?: string; material?: string };
+  matches: Product[];
+  real: Product | null;
 };
 
-export const makePlan = (id: string, prefs: Preferences) =>
-  fetch(`${API}/api/rooms/${id}/plan`, {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify(prefs),
-  }).then((r) => json<Plan>(r));
+export type LookView = {
+  file: string;
+  kind: "main" | "zone";
+  label: string;
+  after: string | null;
+  current: string | null;
+};
 
-export const revisePlan = (id: string, instruction: string) =>
-  fetch(`${API}/api/rooms/${id}/plan/revise`, {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify({ instruction }),
-  }).then((r) => json<Plan>(r));
+export type Look = {
+  id: string;
+  parent: string | null;
+  instruction: string | null;
+  status: "brief" | "rendering" | "shopping" | "done" | "error";
+  error: string | null;
+  brief: null | {
+    title: string;
+    summary: string;
+    why?: string;
+    palette?: string[];
+    materials?: string[];
+  };
+  views: LookView[];
+  items: LookItem[];
+  layout_iou: { mean: number | null } | null;
+  shop: { count: number; total: number; currency: string | null };
+};
 
-export const render = (id: string, c: Change) =>
-  fetch(`${API}/api/rooms/${id}/render`, {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify({ object_id: c.target_id, product_id: c.product.id, action: c.action }),
-  }).then((r) => json<{ before: string; after: string }>(r));
+const post = <T,>(url: string, body: unknown) =>
+  fetch(url, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) }).then((r) =>
+    json<T>(r),
+  );
+
+export const listLooks = (id: string) =>
+  fetch(`${API}/api/rooms/${id}/looks`).then((r) => json<{ id: string; status: string }[]>(r));
+export const getLook = (id: string, lookId: string) =>
+  fetch(`${API}/api/rooms/${id}/looks/${lookId}`).then((r) => json<Look>(r));
+export const createLook = (id: string, prefs: Preferences) => post<Look>(`${API}/api/rooms/${id}/looks`, prefs);
+export const reviseLook = (id: string, lookId: string, instruction: string) =>
+  post<Look>(`${API}/api/rooms/${id}/looks/${lookId}/revise`, { instruction });
+export const makeReal = (id: string, lookId: string, itemId: string, productId: string) =>
+  post<Look>(`${API}/api/rooms/${id}/looks/${lookId}/real`, { item_id: itemId, product_id: productId });

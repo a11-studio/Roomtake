@@ -27,6 +27,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, StreamingResponse
 from pydantic import BaseModel
 
+from app import looks
 from app.agent.architect import make_plan, revise_plan
 from app.catalog import CATEGORIES, get_product, search_products
 from app.config import DATA_DIR
@@ -218,6 +219,92 @@ async def revise(room_id: str, req: ReviseRequest) -> dict:
     except Exception as e:
         raise HTTPException(502, f"{type(e).__name__}: {e}") from e
     return save_plan(room_id, result)
+
+
+class LookRequest(BaseModel):
+    style: str | None = None
+    budget: float | None = None
+    keep: list[str] = []
+    notes: str | None = None
+
+
+background: set[asyncio.Task] = set()  # keep references so tasks are not garbage-collected
+
+
+def start_look(room_id: str, look: dict, parent_brief: dict | None = None) -> None:
+    d, room = room_dir(room_id), load_room(room_id)
+    # image work is partly blocking (masks, compositing); keep it off the server loop
+    task = asyncio.create_task(asyncio.to_thread(asyncio.run, looks.run_look(d, room, look, parent_brief)))
+    background.add(task)
+    task.add_done_callback(background.discard)
+
+
+def look_body(room_id: str, look_id: str) -> dict:
+    if not SAFE_ID.match(look_id) or not (looks.look_dir(room_dir(room_id), look_id) / "look.json").exists():
+        raise HTTPException(404, "look not found")
+    look = looks.load_look(room_dir(room_id), look_id)
+    return {**look, "shop": looks.summary(look)}
+
+
+@app.post("/api/rooms/{room_id}/looks")
+async def create_look(room_id: str, req: LookRequest) -> dict:
+    """Whole-room restyle in one style + shop the look. Poll GET .../looks/{id};
+    status goes brief -> rendering -> shopping -> done (about 1-2 min)."""
+    look = looks.new_look(room_dir(room_id), load_room(room_id), req.model_dump())
+    start_look(room_id, look)
+    return look
+
+
+@app.get("/api/rooms/{room_id}/looks")
+def list_looks(room_id: str) -> list[dict]:
+    base = room_dir(room_id) / "looks"
+    out = []
+    for f in base.glob("*/look.json") if base.exists() else []:
+        look = json.loads(f.read_text())
+        out.append({"id": look["id"], "status": look["status"], "created": look["created"],
+                    "title": (look.get("brief") or {}).get("title"), "instruction": look.get("instruction")})
+    return sorted(out, key=lambda x: -x["created"])
+
+
+@app.get("/api/rooms/{room_id}/looks/{look_id}")
+def get_look(room_id: str, look_id: str) -> dict:
+    return look_body(room_id, look_id)
+
+
+class ReviseLookRequest(BaseModel):
+    instruction: str
+
+
+@app.post("/api/rooms/{room_id}/looks/{look_id}/revise")
+async def revise_look(room_id: str, look_id: str, req: ReviseLookRequest) -> dict:
+    """Muse Spark edits the brief ("warmer", "keep the sofa", "Japandi instead"),
+    then the views are restyled again. Returns the new look to poll."""
+    parent = look_body(room_id, look_id)
+    if not parent.get("brief"):
+        raise HTTPException(409, "look has no brief yet")
+    look = looks.new_look(room_dir(room_id), load_room(room_id), parent["prefs"], parent, req.instruction)
+    start_look(room_id, look, parent["brief"])
+    return look
+
+
+class RealRequest(BaseModel):
+    item_id: str
+    product_id: str
+
+
+@app.post("/api/rooms/{room_id}/looks/{look_id}/real")
+async def make_real(room_id: str, look_id: str, req: RealRequest) -> dict:
+    """Swap a restyled item for the exact catalog product, in the restyled view (~15 s)."""
+    look = look_body(room_id, look_id)
+    if look["status"] != "done":
+        raise HTTPException(409, "look is not finished")
+    try:
+        await looks.make_real(room_dir(room_id), look, req.item_id, req.product_id)
+    except (KeyError, StopIteration) as e:
+        raise HTTPException(404, f"unknown item or product: {e}") from e
+    except RuntimeError as e:
+        raise HTTPException(502, str(e)) from e
+    return look_body(room_id, look_id)
 
 
 class RenderRequest(BaseModel):

@@ -66,7 +66,7 @@ export function Preferences({
 
       <section className="mt-6">
         <div className="flex items-baseline justify-between">
-          <h2 className="text-sm font-medium">Budget</h2>
+          <h2 className="text-sm font-medium">Budget to shop the look</h2>
           <span className="text-sm tabular-nums">${budget.toLocaleString()}</span>
         </div>
         <input
@@ -103,9 +103,9 @@ export function Preferences({
         disabled={busy}
         className="mt-10 w-full rounded-2xl bg-ink py-4 text-base font-medium text-white disabled:opacity-70"
       >
-        {busy ? "The architect is looking at your room…" : "Redesign my room"}
+        {busy ? "Starting…" : style ? `Show my room in ${style}` : "Surprise me with a style"}
       </button>
-      {busy && <p className="mt-2 text-center text-xs text-muted">Muse Wonder is picking real products · about a minute</p>}
+      <p className="mt-2 text-center text-xs text-muted">Same room, same layout, new look · about a minute</p>
     </div>
   );
 }
