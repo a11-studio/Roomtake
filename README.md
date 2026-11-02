@@ -17,7 +17,12 @@ video ──ffmpeg 10 fps/720p──▶ SAM 3.1 tracks each concept through the 
       └─sharpness──▶ 5–8 keyframes (preferred "best frame" per object)
 room.json + frames ──Muse Wonder (agent + tools: searchProducts, fits)──▶ plan
 plan + best frame + SAM mask + product photo ──Muse Image edit──▶ before/after
+"cheaper" / "keep the sofa" ──Muse Spark──▶ updated plan
 ```
+
+Model roles: **Muse Wonder** writes the room plan once per room (~27 s, ~$0.09);
+**Muse Spark** handles small, frequent calls: iterations, UI copy, captions
+(~15 s, ~$0.02). Both read images (T3).
 
 Room analysis tracks the full video at 10 fps: ~4–5 min for 23 concepts on a
 24 s clip. Faster modes (keyframes as images, keyframes as a 1 fps clip, ~20 s)
