@@ -38,6 +38,11 @@ export default function RoomPage({ params }: { params: Promise<{ id: string }> }
     load();
   }, [load]);
 
+  // Every new screen (analysis, style picker, a new or revised look) starts at the top.
+  useEffect(() => {
+    window.scrollTo({ top: 0 });
+  }, [stage, lookId]);
+
   async function run(fn: () => Promise<void>) {
     setBusy(true);
     setError(null);
@@ -58,7 +63,6 @@ export default function RoomPage({ params }: { params: Promise<{ id: string }> }
   const onRevise = (instruction: string) =>
     run(async () => {
       if (lookId) setLookId((await reviseLook(id, lookId, instruction)).id);
-      window.scrollTo({ top: 0, behavior: "smooth" });
     });
 
   return (
@@ -69,10 +73,7 @@ export default function RoomPage({ params }: { params: Promise<{ id: string }> }
         </Link>
         {stage === "look" && (
           <button
-            onClick={() => {
-              setStage("prefs");
-              window.scrollTo({ top: 0 });
-            }}
+            onClick={() => setStage("prefs")}
             className="flex items-center gap-1.5 rounded-full bg-ink py-2 pr-4 pl-3 text-sm font-medium text-white transition active:scale-95"
           >
             <Plus className="text-[15px]" />

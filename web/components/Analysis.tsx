@@ -40,9 +40,8 @@ export function Analysis({ roomId, onDone }: { roomId: string; onDone: () => voi
   return (
     <div className="pt-10">
       <p className="eyebrow">Analyzing your room</p>
-      <h1 className="mt-2 flex items-center gap-3 text-[28px] font-semibold tracking-tight">
-        {stage}
-        <span className="breathe size-2 rounded-full bg-ink" />
+      <h1 key={stage} className="pop-in mt-2 text-[28px] font-semibold tracking-tight">
+        <span className="thinking">{stage}</span>
       </h1>
 
       <div className="mt-8 h-1.5 overflow-hidden rounded-full bg-veil">
@@ -63,7 +62,10 @@ export function Analysis({ roomId, onDone }: { roomId: string; onDone: () => voi
         ) : (
           <ul className="mt-4 flex flex-wrap gap-2">
             {found.map((f) => (
-              <li key={f.concept} className="pop-in rounded-full bg-card px-3.5 py-2 text-sm shadow-[var(--shadow-card)]">
+              <li
+                key={f.concept}
+                className="pop-in rounded-full bg-card px-3.5 py-2 text-sm shadow-[var(--shadow-card)]"
+              >
                 {f.concept}
                 {f.count > 1 && <span className="ml-1.5 text-muted">×{f.count}</span>}
               </li>

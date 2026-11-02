@@ -53,40 +53,21 @@ function useElapsed() {
   return Math.round((now - start) / 1000);
 }
 
+/** Only the step that is running, its title shimmering like a model thinking. */
 function Progress({ status }: { status: Look["status"] }) {
   const elapsed = useElapsed();
-  const at = ORDER.indexOf(status);
+  const at = Math.max(0, ORDER.indexOf(status));
+  const step = STEPS[Math.min(at, STEPS.length - 1)];
   return (
-    <section className="pop-in mt-8 rounded-3xl bg-card p-5 shadow-[var(--shadow-card)]">
-      <ol className="space-y-4">
-        {STEPS.map((s, i) => {
-          const state = i < at ? "done" : i === at ? "now" : "next";
-          return (
-            <li key={s.status} className="flex gap-3">
-              <span
-                className={`mt-0.5 grid size-6 shrink-0 place-items-center rounded-full text-xs ${
-                  state === "done" ? "bg-ink text-white" : state === "now" ? "bg-veil" : "bg-line"
-                }`}
-              >
-                {state === "done" ? (
-                  "✓"
-                ) : state === "now" ? (
-                  <span className="breathe size-2 rounded-full bg-ink" />
-                ) : (
-                  ""
-                )}
-              </span>
-              <div className={state === "next" ? "opacity-45" : ""}>
-                <p className="text-[15px] font-medium">{s.label}</p>
-                {state === "now" && <p className="text-sm text-muted">{s.hint}</p>}
-              </div>
-            </li>
-          );
-        })}
-      </ol>
-      <p className="mt-5 border-t border-line pt-3 text-xs text-muted tabular-nums">
-        {elapsed}s · usually about a minute
-      </p>
+    <section className="mt-8 flex items-center gap-4 rounded-3xl bg-[#f7f4f1] p-4 pr-5">
+      <Orb className="size-11" active />
+      <div key={step.status} className="pop-in min-w-0 flex-1">
+        <p className="thinking text-[17px] font-medium">{step.label}</p>
+        <p className="mt-0.5 text-sm text-muted">{step.hint}</p>
+      </div>
+      <span className="self-start pt-1 text-xs text-muted tabular-nums">
+        {at + 1}/{STEPS.length} · {elapsed}s
+      </span>
     </section>
   );
 }

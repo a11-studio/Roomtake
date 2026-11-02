@@ -108,6 +108,21 @@ input[type="range"].range::-moz-range-thumb {
   border: 2px solid var(--ink);
 }
 
+/* "Thinking" text: a soft light runs through the letters, like a model at work */
+@keyframes thinking {
+  from { background-position: 100% 0; }
+  to { background-position: -100% 0; }
+}
+.thinking {
+  background: linear-gradient(90deg, var(--ink) 0%, var(--ink) 40%, #bfae9b 50%, var(--ink) 60%, var(--ink) 100%);
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: thinking 2.2s linear infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .pop-in, .shimmer::after, .breathe { animation: none; }
+  .thinking { animation: none; color: var(--ink); background: none; }
 }
