@@ -113,6 +113,9 @@ Web app: `cd web && npm install && npm run dev` → http://localhost:3000.
   answers only in the pixels, and an architect pass over keyframes + inventory. Both
   models see the room (6/6 probe answers right) and return grounded changes by id.
   Wonder ~27 s / $0.09 per plan, Spark ~15 s / $0.02. Result: GO.
+- `t4_restyle.py` — T4, whole-room restyle that keeps our layout: Muse Image gets the
+  frame plus a layout map drawn from SAM masks; SAM on the result measures how well each
+  piece kept its place and size (mean IoU 0.39 text-only -> 0.55 with the map).
 
 ## Data & licenses
 
