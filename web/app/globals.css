@@ -1,0 +1,40 @@
+@import "tailwindcss";
+
+/* Design tokens. Brand colour from Martin; the rest is a neutral starting
+   point to be tuned. */
+:root {
+  --brand: #afc2c9;
+  --brand-strong: #7f9aa4;
+  --ink: #1c2427;
+  --muted: #64737a;
+  --paper: #f5f7f8;
+  --card: #ffffff;
+  --line: #dde5e8;
+  --ok: #3f7d5a;
+  --warn: #a8641f;
+}
+
+@theme inline {
+  --color-brand: var(--brand);
+  --color-brand-strong: var(--brand-strong);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-paper: var(--paper);
+  --color-card: var(--card);
+  --color-line: var(--line);
+  --color-ok: var(--ok);
+  --color-warn: var(--warn);
+  --font-sans: var(--font-geist-sans);
+}
+
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+}
+
+@keyframes pop-in {
+  from { opacity: 0; transform: translateY(6px) scale(0.98); }
+  to { opacity: 1; transform: none; }
+}
+.pop-in { animation: pop-in 0.35s ease-out both; }

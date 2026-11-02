@@ -53,7 +53,7 @@ backend/                 Python 3.12+, uv
       muse_image.py      Muse Image edit + paste back inside the SAM region
       visualize.py       catalog product -> replace/add in the room photo
     main.py              FastAPI
-web/                     (Mon eve) Next.js, mobile-first
+web/                     Next.js, mobile-first (see web/README.md)
 spikes/                  go/no-go tests T1–T3
 data/                    local videos/outputs (gitignored)
 ```
@@ -97,6 +97,8 @@ uv run uvicorn app.main:app --reload --port 8000
 | `POST /api/rooms/{id}/plan/revise` `{instruction}` | Muse Spark follow-up, e.g. "keep the sofa", "cheaper" (~20 s) |
 | `GET /api/rooms/{id}/plan` | current plan (every version kept as `plan_<n>.json`) |
 | `POST /api/rooms/{id}/render` `{object_id, product_id, action: replace\|add}` | before/after paths; cached per combo |
+
+Web app: `cd web && npm install && npm run dev` → http://localhost:3000.
 
 `data/rooms/IMG_1184` (our living room) is a ready room for UI work: no upload needed.
 
