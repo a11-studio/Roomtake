@@ -78,6 +78,10 @@ empty balcony) where the architect can place new products.
 - `t2_muse_image.py` — T2, Muse Image swaps/adds a catalog product in our real frame
   (`/v1/images/edits` with [room frame, product photo]), then the edit is pasted back
   only inside the SAM region so the rest of the room stays pixel-identical. Result: GO.
+- `t3_vision.py` — T3, image input on Muse Wonder and Muse Spark: a vision probe with
+  answers only in the pixels, and an architect pass over keyframes + inventory. Both
+  models see the room (6/6 probe answers right) and return grounded changes by id.
+  Wonder ~27 s / $0.09 per plan, Spark ~15 s / $0.02. Result: GO.
 
 ## Data & licenses
 
