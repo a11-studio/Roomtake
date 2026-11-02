@@ -29,28 +29,28 @@ export default function Home() {
   }
 
   return (
-    <div className="home flex min-h-dvh flex-col pt-8 lg:pt-12">
+    <div className="home flex min-h-dvh flex-col pt-6 lg:pt-12">
       <Image src="/RoomTake.svg" alt="Roomtake" width={78} height={60} priority />
 
       {/* Phone: headline, the how-it-works demo, buttons. Desktop: headline and
           buttons on the left, the demo on the right. */}
       <div className="flex flex-1 flex-col lg:grid lg:grid-cols-[minmax(0,1fr)_400px] lg:gap-x-20 lg:py-16">
-        <section className="mt-14 lg:col-start-1 lg:row-start-1 lg:mt-0 lg:self-end">
+        <section className="mt-9 lg:col-start-1 lg:row-start-1 lg:mt-0 lg:self-end">
           <h1 className="text-[42px] font-semibold leading-[1.05] tracking-tight lg:text-[72px] lg:leading-[1]">
             Same room.
             <br />
             Better take.
           </h1>
-          <p className="mt-5 max-w-[30ch] text-[17px] leading-relaxed text-muted lg:mt-8 lg:text-xl">
+          <p className="mt-3 text-[16px] leading-[1.45] text-balance text-muted lg:mt-8 lg:max-w-[30ch] lg:text-xl lg:leading-relaxed">
             Your own room, redesigned around how you live in it, with pieces you can actually buy.
           </p>
         </section>
 
-        <section aria-label="How it works" className="mt-10 lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:mt-0 lg:self-center">
+        <section aria-label="How it works" className="mt-5 lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:mt-0 lg:self-center">
           <HowItWorks />
         </section>
 
-        <div className="mt-auto space-y-3 pt-8 lg:col-start-1 lg:row-start-2 lg:mt-10 lg:max-w-md lg:self-start lg:pt-0">
+        <div className="mt-auto space-y-3 pt-6 lg:col-start-1 lg:row-start-2 lg:mt-10 lg:max-w-md lg:self-start lg:pt-0">
           <input
             ref={input}
             type="file"
