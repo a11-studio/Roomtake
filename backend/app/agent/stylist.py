@@ -11,6 +11,7 @@ nothing replaces a kept item) before the image model sees them.
 
 from __future__ import annotations
 
+import asyncio
 import base64
 import json
 import re
@@ -25,6 +26,9 @@ KEEPABLE = ("furniture", "decor")
 ADD_ONS = ["lamp", "potted plant", "picture frame", "vase", "cushion"]
 ZONE_PIECES = ["outdoor furniture", "potted plant", "rug", "lamp"]
 MAX_MAIN, MAX_ZONE, PER_CATEGORY = 5, 3, 5
+# Wonder usually writes the brief in 20-45 s but has taken 113 s (Nov 2);
+# past this, Spark writes it instead (~15-20 s, similar picks in T3).
+WONDER_TIMEOUT_S = 45
 
 BRIEF_SCHEMA = """{"title": str (style name, 1-3 words, e.g. "Scandinavian calm"),
  "room_type": str (e.g. "living room"),
@@ -148,7 +152,13 @@ Shortlist (id | piece | name | colour, material | W x D x H | price | styles):
 Reply with JSON only:
 {BRIEF_SCHEMA}"""
     images = [_image(room_dir / v["file"]) for v in room["views"]]
-    brief = await _ask(ARCHITECT_MODEL, [*images, {"type": "text", "text": text}])
+    content = [*images, {"type": "text", "text": text}]
+    try:
+        brief = await asyncio.wait_for(_ask(ARCHITECT_MODEL, content), WONDER_TIMEOUT_S)
+        brief["model"] = ARCHITECT_MODEL
+    except asyncio.TimeoutError:
+        brief = await _ask(HELPER_MODEL, content)
+        brief["model"] = f"{HELPER_MODEL} (fallback: {ARCHITECT_MODEL} over {WONDER_TIMEOUT_S} s)"
     return _check(brief, keep, room, budget)
 
 
@@ -172,4 +182,5 @@ Shortlist (id | piece | name | colour, material | W x D x H | price | styles):
 Reply with the full updated brief as JSON only, same schema:
 {BRIEF_SCHEMA}"""
     revised = await _ask(HELPER_MODEL, [{"type": "text", "text": text}])
+    revised["model"] = HELPER_MODEL
     return _check(revised, brief.get("keep", []), room, prefs.get("budget"))
