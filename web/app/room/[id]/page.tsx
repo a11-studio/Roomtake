@@ -74,26 +74,29 @@ export default function RoomPage({ params }: { params: Promise<{ id: string }> }
         {stage === "look" && (
           <button
             onClick={() => setStage("prefs")}
-            className="flex items-center gap-1.5 rounded-full bg-ink py-2 pr-4 pl-3 text-sm font-medium text-white transition active:scale-95"
+            className="inline-flex h-9 items-center gap-1.5 rounded-full bg-ink pr-4 pl-3 text-sm font-medium text-white transition-[background-color,transform] hover:bg-[#2c3734] active:scale-95"
           >
             <Plus className="text-[15px]" />
-            New style
+            <span className="trim">New style</span>
           </button>
         )}
       </header>
 
-      {stage === "loading" && (
-        <div className="pt-10">
-          <span className="shimmer block aspect-[4/3] w-60 rounded-2xl bg-veil" />
-          <span className="shimmer mt-8 block h-8 w-56 rounded-full bg-veil" />
-          <span className="shimmer mt-3 block h-4 w-full rounded-full bg-veil" />
-        </div>
-      )}
-      {stage === "analyzing" && <Analysis roomId={id} onDone={load} />}
-      {stage === "prefs" && room && <Preferences roomId={id} room={room} busy={busy} onSubmit={onStyle} />}
-      {stage === "look" && lookId && (
-        <LookView key={lookId} roomId={id} lookId={lookId} busy={busy} onRevise={onRevise} />
-      )}
+      {/* a new screen keeps the header and crossfades only the body */}
+      <div key={stage === "look" ? `look-${lookId}` : stage} className="page-in">
+        {stage === "loading" && (
+          <div className="pt-10">
+            <span className="shimmer block aspect-[4/3] w-60 rounded-2xl bg-veil" />
+            <span className="shimmer mt-8 block h-8 w-56 rounded-full bg-veil" />
+            <span className="shimmer mt-3 block h-4 w-full rounded-full bg-veil" />
+          </div>
+        )}
+        {stage === "analyzing" && <Analysis roomId={id} onDone={load} />}
+        {stage === "prefs" && room && <Preferences roomId={id} room={room} busy={busy} onSubmit={onStyle} />}
+        {stage === "look" && lookId && (
+          <LookView key={lookId} roomId={id} lookId={lookId} busy={busy} onRevise={onRevise} />
+        )}
+      </div>
       {error && <p className="mt-8 rounded-2xl bg-card p-4 text-sm text-warn shadow-[var(--shadow-card)]">{error}</p>}
     </>
   );

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Count } from "@/components/Count";
 import { API, type ProgressEvent } from "@/lib/api";
 
 const TOTAL_CONCEPTS = 23; // backend/app/pipeline/concepts.py
@@ -45,7 +46,10 @@ export function Analysis({ roomId, onDone }: { roomId: string; onDone: () => voi
       </h1>
 
       <div className="mt-8 h-1.5 overflow-hidden rounded-full bg-veil">
-        <div className="h-full rounded-full bg-ink transition-all duration-700" style={{ width: `${pct}%` }} />
+        <div
+          className="h-full rounded-full bg-ink transition-[width] duration-700"
+          style={{ width: `${pct}%`, transitionTimingFunction: "var(--ease-travel)" }}
+        />
       </div>
       <p className="mt-3 text-sm text-muted">
         {checked} of {TOTAL_CONCEPTS} kinds of things checked · usually 3–5 minutes
@@ -64,10 +68,12 @@ export function Analysis({ roomId, onDone }: { roomId: string; onDone: () => voi
             {found.map((f) => (
               <li
                 key={f.concept}
-                className="pop-in rounded-full bg-card px-3.5 py-2 text-sm shadow-[var(--shadow-card)]"
+                className={`pop-in inline-flex h-7 items-center gap-1.5 rounded-full bg-[#f4efe9] pl-3 text-[13px] ${
+                  f.count > 1 ? "pr-[5px]" : "pr-3"
+                }`}
               >
-                {f.concept}
-                {f.count > 1 && <span className="ml-1.5 text-muted">×{f.count}</span>}
+                <span className="trim">{f.concept}</span>
+                {f.count > 1 && <Count n={f.count} />}
               </li>
             ))}
           </ul>

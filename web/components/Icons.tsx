@@ -1,30 +1,29 @@
-// Small stroke/fill icons, sized by the parent's font size (1em) and coloured
-// by currentColor, so they sit inside buttons like text.
+// One icon set (Phosphor), one weight. Icons size with the text around them
+// (1em) and take its color, so they sit inside buttons and pills like words.
+
+import {
+  ArrowUp as PhArrowUp,
+  ArrowsLeftRight as PhArrowsLeftRight,
+  Check as PhCheck,
+  Plus as PhPlus,
+  Shuffle as PhShuffle,
+  X as PhX,
+} from "@phosphor-icons/react";
+import type { ComponentType } from "react";
 
 type Props = { className?: string };
 
-/** Four-point sparkle with a small companion: "let the AI pick". */
-export function Spark({ className = "" }: Props) {
-  return (
-    <svg viewBox="0 0 24 24" width="1em" height="1em" fill="currentColor" aria-hidden className={className}>
-      <path d="M11 2.5c.4 0 .7.3.8.7l.9 3.6a5 5 0 0 0 3.6 3.6l3.6.9a.8.8 0 0 1 0 1.6l-3.6.9a5 5 0 0 0-3.6 3.6l-.9 3.6a.8.8 0 0 1-1.6 0l-.9-3.6a5 5 0 0 0-3.6-3.6l-3.6-.9a.8.8 0 0 1 0-1.6l3.6-.9a5 5 0 0 0 3.6-3.6l.9-3.6c.1-.4.4-.7.8-.7Z" />
-      <path d="M19 1.8c.2 0 .4.1.4.3l.3 1.1c.1.5.5.9 1 1l1.1.3a.4.4 0 0 1 0 .8l-1.1.3c-.5.1-.9.5-1 1l-.3 1.1a.4.4 0 0 1-.8 0l-.3-1.1c-.1-.5-.5-.9-1-1l-1.1-.3a.4.4 0 0 1 0-.8l1.1-.3c.5-.1.9-.5 1-1l.3-1.1c0-.2.2-.3.4-.3Z" />
-    </svg>
+function icon(Glyph: ComponentType<{ size?: string; weight?: "bold"; className?: string; "aria-hidden"?: boolean }>) {
+  const Icon = ({ className = "" }: Props) => (
+    <Glyph size="1em" weight="bold" aria-hidden className={`shrink-0 ${className}`} />
   );
+  return Icon;
 }
 
-export function Plus({ className = "" }: Props) {
-  return (
-    <svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden className={className}>
-      <path d="M12 5v14M5 12h14" />
-    </svg>
-  );
-}
-
-export function ArrowUp({ className = "" }: Props) {
-  return (
-    <svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden className={className}>
-      <path d="M12 19V5M6 11l6-6 6 6" />
-    </svg>
-  );
-}
+/** "Surprise me": we pick a style for you, so the icon says pick-at-random, not "AI". */
+export const Shuffle = icon(PhShuffle);
+export const Plus = icon(PhPlus);
+export const ArrowUp = icon(PhArrowUp);
+export const ArrowsLeftRight = icon(PhArrowsLeftRight);
+export const Check = icon(PhCheck);
+export const Close = icon(PhX);

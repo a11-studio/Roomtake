@@ -1,7 +1,8 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Spark } from "@/components/Icons";
+import { Count } from "@/components/Count";
+import { Check, Plus, Shuffle } from "@/components/Icons";
 import { fileUrl, type Preferences as Prefs, type Room } from "@/lib/api";
 
 // Matches backend/app/catalog/models.py STYLES.
@@ -72,20 +73,19 @@ export function Preferences({
               {counts.map(([label, n], i) => (
                 <li
                   key={label}
-                  className="pop-in flex items-center gap-1.5 rounded-full bg-[#f4efe9] py-1 pr-3 pl-3 text-[13px]"
-                  style={{ animationDelay: `${i * 25}ms` }}
+                  className={`pop-in inline-flex h-7 items-center gap-1.5 rounded-full bg-[#f4efe9] pl-3 text-[13px] ${
+                    n > 1 ? "pr-[5px]" : "pr-3"
+                  }`}
+                  style={{ animationDelay: `${i * 40}ms` }}
                 >
-                  {label}
-                  {n > 1 && (
-                    <span className="grid h-[18px] min-w-[18px] place-items-center rounded-full bg-card px-1 text-[11px] font-medium text-muted tabular-nums">
-                      {n}
-                    </span>
-                  )}
+                  <span className="trim">{label}</span>
+                  {n > 1 && <Count n={n} />}
                 </li>
               ))}
               {freeZone && (
-                <li className="pop-in rounded-full border border-dashed border-[#c9b9a7] px-3 py-[3px] text-[13px] text-muted">
-                  + empty {freeZone.label.replace(" floor", "")}, ready for something new
+                <li className="pop-in inline-flex h-7 items-center gap-1.5 rounded-full border border-dashed border-[#c9b9a7] px-3 text-[13px] text-muted">
+                  <Plus className="text-[12px]" />
+                  <span className="trim">empty {freeZone.label.replace(" floor", "")}, ready for something new</span>
                 </li>
               )}
             </ul>
@@ -101,8 +101,10 @@ export function Preferences({
                     key={s.name}
                     onClick={() => setStyle(on ? undefined : s.name)}
                     aria-pressed={on}
-                    className={`rounded-2xl p-3.5 text-left transition active:scale-[0.98] ${
-                      on ? "bg-ink text-white shadow-[var(--shadow-float)]" : "bg-card shadow-[var(--shadow-card)]"
+                    className={`rounded-[20px] p-3.5 text-left transition-[background-color,box-shadow,transform] duration-200 active:scale-[0.98] ${
+                      on
+                        ? "bg-ink text-white shadow-[var(--shadow-float)]"
+                        : "bg-card shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-float)]"
                     }`}
                   >
                     <span className="flex">
@@ -152,11 +154,27 @@ export function Preferences({
                     key={label}
                     onClick={() => setKeep(on ? keep.filter((k) => !ids.includes(k)) : [...new Set([...keep, ...ids])])}
                     aria-pressed={on}
-                    className={`rounded-full px-3.5 py-2 text-sm transition ${on ? "bg-ink text-white" : "bg-veil"}`}
+                    className={`inline-flex h-9 items-center rounded-full pl-3.5 text-sm transition-[background-color,color,transform] duration-200 active:scale-95 ${
+                      ids.length > 1 ? "pr-[9px]" : "pr-3.5"
+                    } ${on ? "bg-ink text-white hover:bg-[#2c3734]" : "bg-veil hover:bg-[#d6cabd]"}`}
                   >
-                    {on && "✓ "}
-                    {label}
-                    {ids.length > 1 && <span className={on ? "text-white/60" : "text-muted"}> ×{ids.length}</span>}
+                    <span
+                      // the check and its gap open together, so the label never jumps
+                      className="grid overflow-hidden transition-[width,opacity] duration-300"
+                      style={{
+                        width: on ? 20 : 0,
+                        opacity: on ? 1 : 0,
+                        transitionTimingFunction: "var(--ease-travel)",
+                      }}
+                    >
+                      <Check className="text-[14px]" />
+                    </span>
+                    <span className="trim">{label}</span>
+                    {ids.length > 1 && (
+                      <span className="ml-1.5 flex">
+                        <Count n={ids.length} inverted={on} />
+                      </span>
+                    )}
                   </button>
                 );
               })}
@@ -167,7 +185,7 @@ export function Preferences({
             <button
               onClick={() => onSubmit({ style, budget, keep })}
               disabled={busy}
-              className="flex w-full items-center justify-center gap-2 rounded-full bg-ink py-4 text-base font-medium text-white shadow-[var(--shadow-float)] transition active:scale-[0.99] disabled:opacity-80"
+              className="flex h-14 w-full items-center justify-center gap-2 rounded-full bg-ink text-base font-medium text-white shadow-[var(--shadow-float)] transition-[background-color,transform] hover:bg-[#2c3734] active:scale-[0.99] disabled:opacity-80"
             >
               {busy ? (
                 "Starting…"
@@ -175,7 +193,7 @@ export function Preferences({
                 `Show my room in ${style}`
               ) : (
                 <>
-                  <Spark className="text-[18px]" />
+                  <Shuffle className="text-[18px]" />
                   Surprise me with a style
                 </>
               )}

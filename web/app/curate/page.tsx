@@ -3,12 +3,25 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { Close } from "@/components/Icons";
 import { getCatalog, importProduct, thumb, removeProduct, saveProduct, type Catalog, type Product } from "@/lib/api";
 
 // What looks need most often: the pieces SAM finds in a restyled room.
 const KEY_CATEGORIES = [
-  "sofa", "armchair", "chair", "coffee table", "side table", "rug", "lamp", "shelving unit",
-  "potted plant", "curtain", "cushion", "outdoor furniture", "picture frame", "vase",
+  "sofa",
+  "armchair",
+  "chair",
+  "coffee table",
+  "side table",
+  "rug",
+  "lamp",
+  "shelving unit",
+  "potted plant",
+  "curtain",
+  "cushion",
+  "outdoor furniture",
+  "picture frame",
+  "vase",
 ];
 const TARGET = 4;
 
@@ -27,9 +40,14 @@ export default function Curate() {
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const refresh = () => getCatalog().then(setCatalog).catch((e) => setError(String(e)));
+  const refresh = () =>
+    getCatalog()
+      .then(setCatalog)
+      .catch((e) => setError(String(e)));
   useEffect(() => {
-    getCatalog().then(setCatalog).catch((e) => setError(String(e)));
+    getCatalog()
+      .then(setCatalog)
+      .catch((e) => setError(String(e)));
   }, []);
 
   async function run(label: string, fn: () => Promise<void>) {
@@ -67,7 +85,11 @@ export default function Curate() {
 
   const westwing = catalog?.source === "westwing";
   const styles = catalog?.styles ?? [];
-  const draftStyles = draft?.style?.split(",").map((s) => s.trim()).filter(Boolean) ?? [];
+  const draftStyles =
+    draft?.style
+      ?.split(",")
+      .map((s) => s.trim())
+      .filter(Boolean) ?? [];
 
   return (
     <div className="pt-5">
@@ -113,7 +135,10 @@ export default function Curate() {
           placeholder="https://www.westwing.sk/…"
           className="min-w-0 flex-1 rounded-full bg-card px-4 py-2.5 text-sm outline-none ring-1 ring-line focus:ring-brand-strong"
         />
-        <button disabled={!!busy} className="rounded-full bg-ink px-5 text-sm font-medium text-white disabled:opacity-50">
+        <button
+          disabled={!!busy}
+          className="rounded-full bg-ink px-5 text-sm font-medium text-white disabled:opacity-50"
+        >
           Import
         </button>
       </form>
@@ -137,7 +162,14 @@ export default function Curate() {
           {variants.length > 1 && (
             <select
               value={draft.id}
-              onChange={(e) => setDraft({ ...variants.find((v) => v.id === e.target.value)!, category: draft.category, style: draft.style, name_en: draft.name_en })}
+              onChange={(e) =>
+                setDraft({
+                  ...variants.find((v) => v.id === e.target.value)!,
+                  category: draft.category,
+                  style: draft.style,
+                  name_en: draft.name_en,
+                })
+              }
               className="mt-3 w-full rounded-lg bg-paper px-2 py-2 text-sm ring-1 ring-line"
             >
               {variants.map((v) => (
@@ -175,7 +207,10 @@ export default function Curate() {
                 <button
                   key={s}
                   onClick={() =>
-                    setDraft({ ...draft, style: (on ? draftStyles.filter((x) => x !== s) : [...draftStyles, s]).join(", ") || null })
+                    setDraft({
+                      ...draft,
+                      style: (on ? draftStyles.filter((x) => x !== s) : [...draftStyles, s]).join(", ") || null,
+                    })
                   }
                   className={`rounded-full px-2.5 py-1 text-xs ring-1 ${on ? "bg-ink text-white ring-ink" : "bg-veil ring-transparent"}`}
                 >
@@ -207,7 +242,11 @@ export default function Curate() {
                     .map((p) => (
                       <li key={p.id} className="flex items-center gap-3 rounded-xl bg-card p-2 ring-1 ring-line">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={thumb(p.image_url)} alt="" className="size-12 shrink-0 rounded-lg bg-paper object-contain" />
+                        <img
+                          src={thumb(p.image_url)}
+                          alt=""
+                          className="size-12 shrink-0 rounded-lg bg-paper object-contain"
+                        />
                         <a href={p.product_url} target="_blank" rel="noreferrer" className="min-w-0 flex-1">
                           <p className="truncate text-sm">{p.name_en ?? p.name}</p>
                           <p className="truncate text-xs text-muted">
@@ -220,7 +259,7 @@ export default function Curate() {
                           aria-label={`Remove ${p.name_en ?? p.name}`}
                           className="px-2 text-lg text-muted"
                         >
-                          ×
+                          <Close />
                         </button>
                       </li>
                     ))}

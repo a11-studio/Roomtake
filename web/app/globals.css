@@ -3,6 +3,10 @@
 /* Design tokens. Pages are white; the brand blue is reserved for the home
    page; warm beige carries secondary details (chips, badges, tracks). */
 :root {
+  /* Two curves (stageshow motion rules): travel for things that move from A
+     to B, arrive for things that appear. */
+  --ease-travel: cubic-bezier(0.45, 0, 0.1, 1);
+  --ease-arrive: cubic-bezier(0.25, 0.8, 0.25, 1);
   --brand: #afc2c9;
   --brand-deep: #8fa7b0;
   --paper: #ffffff; /* page background */
@@ -49,20 +53,46 @@ body {
   color: var(--card);
 }
 
-/* Small caps label used above sections */
+/* Section label: sentence case, hierarchy from one weight step and space */
 .eyebrow {
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.3;
   color: var(--muted);
+}
+
+/* Centre a label on its letters, not its line box (pills, buttons, badges) */
+.trim {
+  text-box: trim-both cap alphabetic;
 }
 
 @keyframes pop-in {
   from { opacity: 0; transform: translateY(8px); }
   to { opacity: 1; transform: none; }
 }
-.pop-in { animation: pop-in 0.45s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+.pop-in { animation: pop-in 0.6s var(--ease-arrive) both; }
+
+/* A new screen in the same window: only the body crossfades, rising 8px */
+@keyframes page-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+.page-in { animation: page-in 0.25s var(--ease-arrive) both; }
+
+/* Open and close by height without stretching the content: the row track
+   animates, the content fades after it opens and before it closes. */
+.fold {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transition: grid-template-rows 0.5s var(--ease-travel), opacity 0.2s ease;
+}
+.fold > * { min-height: 0; overflow: hidden; }
+.fold[data-open="true"] {
+  grid-template-rows: 1fr;
+  opacity: 1;
+  transition: grid-template-rows 0.5s var(--ease-travel), opacity 0.35s ease 0.15s;
+}
 
 /* Light sweeping across an image while it is being redrawn */
 @keyframes sweep {
@@ -123,6 +153,7 @@ input[type="range"].range::-moz-range-thumb {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .pop-in, .shimmer::after, .breathe { animation: none; }
+  .pop-in, .page-in, .shimmer::after, .breathe { animation: none; }
+  .fold, .fold[data-open="true"] { transition: none; }
   .thinking { animation: none; color: var(--ink); background: none; }
 }
