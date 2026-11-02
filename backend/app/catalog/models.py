@@ -10,7 +10,7 @@ CATEGORIES = [
     "outdoor furniture", "decor",
 ]
 
-STYLES = ["Scandinavian", "Modern", "Japandi", "Boho", "Industrial"]
+STYLES = ["Scandinavian", "Japandi", "Art Deco", "Mid-Century", "Mediterranean"]
 
 # Budgets and comparisons are in EUR; fixed rates are fine for a demo.
 TO_EUR = {"EUR": 1.0, "CZK": 1 / 25.2, "USD": 0.92}

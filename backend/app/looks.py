@@ -79,9 +79,11 @@ def _score(p: Product, desc: dict) -> int:
     return len(want & have)
 
 
-def _matches(desc: dict, max_price: float | None) -> list[dict]:
+def _matches(desc: dict, max_price: float | None, style: str | None = None) -> list[dict]:
+    """Same category, within budget; the look's style counts most, then shared words."""
     hits = search_products(str(desc.get("category", "")), max_price=max_price)
-    hits.sort(key=lambda p: (-_score(p, desc), p.price))
+    in_style = lambda p: bool(style and p.style and style.lower() in p.style.lower())  # noqa: E731
+    hits.sort(key=lambda p: (-in_style(p), -_score(p, desc), p.price_eur))
     return [p.to_dict() for p in hits[:3]]
 
 
@@ -193,7 +195,7 @@ async def _shop(room_dir: Path, look: dict) -> None:
             "crop": str((d / f"item{n}.jpg").relative_to(room_dir)),
             "mask": str((d / f"item{n}_mask.png").relative_to(room_dir)),
             "description": desc,
-            "matches": _matches(desc, budget),
+            "matches": _matches(desc, budget, (look.get("prefs") or {}).get("style")),
             "real": None,
         })
 

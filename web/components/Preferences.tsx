@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { fileUrl, type Preferences as Prefs, type Room } from "@/lib/api";
 
-const STYLES = ["Scandinavian", "Modern", "Japandi", "Boho", "Industrial"];
+const STYLES = ["Scandinavian", "Japandi", "Art Deco", "Mid-Century", "Mediterranean"];
 
 /** Room summary + the three quick choices before the architect runs. */
 export function Preferences({

@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { BeforeAfter } from "@/components/BeforeAfter";
 import { fileUrl, getLook, makeReal, thumb, type Look, type LookItem, type Product } from "@/lib/api";
 
-const QUICK = ["Warmer and cosier", "Keep my sofa", "More plants", "Try Japandi instead"];
+const QUICK = ["Warmer and cosier", "Keep my sofa", "More plants", "Try Art Deco instead"];
 
 const STAGES: Record<Look["status"], string> = {
   brief: "The stylist is looking at your room…",
