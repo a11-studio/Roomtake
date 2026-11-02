@@ -73,7 +73,7 @@ export default function Curate() {
     <div className="pt-5">
       <header className="flex items-center justify-between">
         <Link href="/">
-          <Image src="/RoomTake.svg" alt="Roomtake" width={46} height={36} />
+          <Image src="/RoomTake-light.svg" alt="Roomtake" width={46} height={36} />
         </Link>
         <span className="text-sm text-muted">Catalog</span>
       </header>

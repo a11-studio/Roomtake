@@ -64,7 +64,7 @@ export default function RoomPage({ params }: { params: Promise<{ id: string }> }
     <>
       <header className="flex items-center justify-between pt-6">
         <Link href="/" aria-label="Home">
-          <Image src="/RoomTake.svg" alt="Roomtake" width={52} height={40} />
+          <Image src="/RoomTake-light.svg" alt="Roomtake" width={52} height={40} />
         </Link>
         {stage === "look" && (
           <button

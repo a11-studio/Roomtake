@@ -9,7 +9,7 @@ const FONT_CSS =
 export const metadata: Metadata = {
   title: "Roomtake",
   description: "Film your room. Get a real redesign with products you can buy.",
-  icons: { icon: "/RoomTake.svg" },
+  icons: { icon: "/RoomTake-light.svg" },
 };
 
 export const viewport: Viewport = {
