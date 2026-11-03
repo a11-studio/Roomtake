@@ -102,6 +102,22 @@ function Progress({ status }: { status: Look["status"] }) {
   );
 }
 
+/** What you asked for, as your message in a chat: the look below is the answer. */
+function YouSaid({ text }: { text: string }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="mb-6 flex justify-end">
+      <button
+        onClick={() => setOpen(!open)}
+        aria-expanded={open}
+        className="pop-in max-w-[85%] rounded-[22px] rounded-br-md bg-veil px-4 py-2.5 text-left text-[15px] leading-snug text-ink"
+      >
+        <span className={open ? "" : "line-clamp-3"}>{text}</span>
+      </button>
+    </div>
+  );
+}
+
 function UsedProduct({ use, index }: { use: ProductUse; index: number }) {
   const p = use.product;
   const where = use.for === "add" ? "Added" : `New ${use.for}`;
@@ -173,7 +189,8 @@ export function LookView({
   return (
     <div className="pt-8 lg:grid lg:grid-cols-[minmax(0,1fr)_400px] lg:gap-x-14 lg:pt-10">
       <header className="lg:col-start-2 lg:row-start-1">
-        <p className="eyebrow">{look.instruction ? `“${look.instruction}”` : "Your room, restyled"}</p>
+        {look.instruction && <YouSaid text={look.instruction} />}
+        <p className="eyebrow">Your room, restyled</p>
         {look.brief ? (
           <>
             <h1 className="pop-in mt-2 text-[30px] font-semibold leading-tight tracking-tight lg:text-[36px]">
