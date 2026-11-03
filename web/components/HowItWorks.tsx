@@ -1,13 +1,13 @@
 "use client";
 
 import { useMemo, useRef, useState } from "react";
-import { Collapse, Phone, Roll, Stage, States, useReducedMotion, type Act } from "@/stageshow/kit";
+import { Collapse, Phone, Stage, States, useReducedMotion, type Act } from "@/stageshow/kit";
 import "./how-it-works.css";
 
 // The home page's "how it works", as one phone that plays the three steps.
 //
-// 1 Film:            the camera pans across our real living room while SAM's
-//                    finds land on the furniture as it comes into view
+// 1 Snap:            the camera settles on our real living room, a tap on the
+//                    shutter, a flash; SAM's finds land on the photo
 // 2 Pick a style:    a tap on Japandi; the button takes the style's name; a tap
 // 3 See it, buy it:  the divider travels to the middle and uncovers the
 //                    restyled room; the real rug in it rises in with its price
@@ -19,9 +19,10 @@ import "./how-it-works.css";
 type Step = 0 | 1 | 2;
 type S = {
   step: Step;
-  pan: boolean; // the camera has panned across the room
+  pan: boolean; // the camera has settled on the room
+  flash: boolean; // the shutter's flash
+  shot: boolean; // the photo is taken (its thumbnail is in)
   finds: number; // bitmask: which finds are showing
-  rec: number; // recording seconds
   picked: boolean; // Japandi tapped
   named: boolean; // the button says "Show my room in Japandi"
   reveal: number; // divider position, % from the left (100 = all before)
@@ -29,7 +30,7 @@ type S = {
 };
 
 export const STEPS = [
-  { title: "Film", text: "Walk slowly around your room for 30 seconds." },
+  { title: "Snap", text: "Take 1–3 photos of your room from its best corners." },
   { title: "Pick a style", text: "Scandinavian, Japandi, Art Deco and more." },
   { title: "See it, buy it", text: "Your room restyled with real pieces you can order." },
 ] as const;
@@ -37,24 +38,18 @@ export const STEPS = [
 /** Length of each scene; the tabs' progress runs on the same clock. */
 export const SCENE_MS = [5000, 4600, 6200] as const;
 
-const START: S = { step: 0, pan: false, finds: 0, rec: 0, picked: false, named: false, reveal: 100, product: false };
-const POSTER: S = { ...START, step: 2, reveal: 50, product: true, picked: true, named: true, pan: true, finds: 0b1110 };
+const START: S = { step: 0, pan: false, flash: false, shot: false, finds: 0, picked: false, named: false, reveal: 100, product: false };
+const POSTER: S = { ...START, step: 2, reveal: 50, product: true, picked: true, named: true, pan: true, shot: true, finds: 0b111 };
 const REST = { x: 380, y: 470 };
 
-// Where the finds sit on the photo (fractions of frame_0107, from SAM's boxes).
-// Each lands as the pan brings it into view and leaves before the pan takes
-// it out, so a label is never cut by the screen's edge; the one near the
-// right edge carries its label on the left.
+// Where the finds sit on the photo (fractions of frame_0107, from SAM's boxes);
+// all three are in the settled frame. They land one by one after the shot.
 const FINDS = [
-  { label: "shelving unit", x: 0.17, y: 0.36, on: 300, off: 1000 },
-  { label: "coffee table", x: 0.55, y: 0.74, on: 1700 },
-  { label: "sofa", x: 0.7, y: 0.6, on: 2400 },
-  { label: "side table", x: 0.9, y: 0.86, on: 3400, flip: true },
+  { label: "coffee table", x: 0.55, y: 0.74 },
+  { label: "sofa", x: 0.7, y: 0.6 },
+  { label: "side table", x: 0.9, y: 0.86, flip: true },
 ];
-const FIND_EVENTS = FINDS.flatMap((f, i) => [
-  { at: f.on, i, show: true },
-  ...(f.off ? [{ at: f.off, i, show: false }] : []),
-]).sort((a, b) => a.at - b.at);
+const FIND_GAP = 450;
 
 const STYLES = [
   { name: "Scandinavian", swatches: ["#efe8dc", "#c9a57d", "#9aa7a2"] },
@@ -66,19 +61,22 @@ const STYLES = [
 function makeScript(start: Step, onStep: (s: Step) => void) {
   const scenes: Record<Step, (a: Act<S>) => Promise<void>> = {
     0: async (a) => {
-      await a.snap({ pan: false, finds: 0, rec: 0 });
+      await a.snap({ pan: false, flash: false, shot: false, finds: 0 });
       a.set({ step: 0 });
       onStep(0);
       await a.wait(250);
-      a.set({ pan: true });
-      let t = 250;
-      for (const e of FIND_EVENTS) {
-        await a.wait(e.at - t);
-        t = e.at;
-        a.put((s) => ({ finds: e.show ? s.finds | (1 << e.i) : s.finds & ~(1 << e.i), rec: Math.floor(t / 1000) }));
+      a.set({ pan: true }); // framing the shot
+      await a.wait(1300);
+      await a.click("shutter");
+      a.put({ flash: true });
+      await a.wait(120);
+      a.put({ flash: false, shot: true });
+      await a.wait(450);
+      for (let i = 0; i < FINDS.length; i++) {
+        a.put((s) => ({ finds: s.finds | (1 << i) }));
+        await a.wait(FIND_GAP);
       }
-      await a.wait(SCENE_MS[0] - t);
-      a.put({ rec: Math.floor(SCENE_MS[0] / 1000) });
+      await a.wait(SCENE_MS[0] - 250 - 1300 - 900 - 120 - 450 - FINDS.length * FIND_GAP);
     },
     1: async (a) => {
       await a.snap({ picked: false, named: false });
@@ -112,7 +110,7 @@ function makeScript(start: Step, onStep: (s: Step) => void) {
   };
 }
 
-function Film({ s }: { s: S }) {
+function Snap({ s }: { s: S }) {
   return (
     <div className="how-film">
       <div className="how-film__pan" data-pan={s.pan || undefined}>
@@ -131,13 +129,12 @@ function Film({ s }: { s: S }) {
           </span>
         ))}
       </div>
-      <div className="how-film__rec">
-        <span className="how-film__recdot" />
-        <span className="how-film__time">
-          <Roll>{`0:${String(s.rec).padStart(2, "0")}`}</Roll>
-        </span>
-      </div>
-      <span className="how-film__shutter" />
+      <span className="how-film__flash" data-on={s.flash || undefined} />
+      <span className="how-film__thumb" data-on={s.shot || undefined}>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/demo/room.jpg" alt="" />
+      </span>
+      <span className="how-film__shutter" data-target="shutter" />
     </div>
   );
 }
@@ -242,7 +239,7 @@ export function HowItWorks() {
         {(s, _rect, layout) => (
           <Phone width={layout === "compact" ? 326 : 340} dark={s.step === 0} className="how-phone">
             <div className="how-screen" data-on={s.step === 0 || undefined}>
-              <Film s={s} />
+              <Snap s={s} />
             </div>
             <div className="how-screen how-screen--light" data-on={s.step === 1 || undefined}>
               <Pick s={s} />

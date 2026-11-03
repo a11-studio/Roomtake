@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import { HowItWorks } from "@/components/HowItWorks";
-import { uploadVideo } from "@/lib/api";
+import { uploadPhotos } from "@/lib/api";
 
 const DEMO_ROOM = "IMG_1184";
 
@@ -15,12 +15,12 @@ export default function Home() {
   const [progress, setProgress] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  async function onFile(file: File | undefined) {
-    if (!file) return;
+  async function onFiles(files: FileList | null) {
+    if (!files?.length) return;
     setError(null);
     setProgress(0);
     try {
-      const { id } = await uploadVideo(file, setProgress);
+      const { id } = await uploadPhotos([...files], setProgress);
       router.push(`/room/${id}`);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Upload failed");
@@ -54,10 +54,10 @@ export default function Home() {
           <input
             ref={input}
             type="file"
-            accept="video/*"
-            capture="environment"
+            accept="image/*"
+            multiple
             className="hidden"
-            onChange={(e) => onFile(e.target.files?.[0])}
+            onChange={(e) => onFiles(e.target.files)}
           />
           <button
             onClick={() => input.current?.click()}
@@ -70,7 +70,7 @@ export default function Home() {
                 style={{ width: `${progress}%` }}
               />
             )}
-            <span className="relative">{progress === null ? "Film your room" : `Uploading… ${progress}%`}</span>
+            <span className="relative">{progress === null ? "Snap your room" : `Uploading… ${progress}%`}</span>
           </button>
           <Link
             href={`/room/${DEMO_ROOM}`}

@@ -2,7 +2,7 @@
 
     cd backend && uv run uvicorn app.main:app --reload --port 8000
 
-POST /api/rooms                     upload a room video -> {id}; analysis starts
+POST /api/rooms                     upload 1-3 room photos (or a video) -> {id}; analysis starts
 GET  /api/rooms                     rooms on disk
 GET  /api/rooms/{id}                status (+ room.json when done)
 GET  /api/rooms/{id}/events         progress as server-sent events
@@ -22,7 +22,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Literal
 
-from fastapi import FastAPI, HTTPException, UploadFile
+from fastapi import FastAPI, File, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, StreamingResponse
 from pydantic import BaseModel
@@ -32,6 +32,7 @@ from app.agent.architect import make_plan, revise_plan
 from app.catalog import CATEGORIES, STYLES, Product, add_product, all_products, get_product, remove_product, search_products
 from app.catalog.curated import import_url
 from app.config import CURATE_ENABLED, DATA_DIR, MAX_ANALYSES, MAX_UPLOAD_MB, PUBLIC
+from app.pipeline.photos import MAX_PHOTOS, analyze_photos
 from app.pipeline.room import analyze_room
 from app.render.visualize import visualize
 
@@ -84,13 +85,14 @@ def status(room_id: str) -> str:
     return "done" if (room_dir(room_id) / "room.json").exists() else "error"
 
 
-async def run_analysis(room_id: str, video: Path) -> None:
+async def run_analysis(room_id: str, sources: list[Path], kind: Literal["photos", "video"]) -> None:
     job = jobs[room_id]
+    out = sources[0].parent
+    work = (analyze_photos(sources, out, on_event=job.events.append) if kind == "photos"
+            else analyze_room(sources[0], out, on_event=job.events.append))
     try:
         # ffmpeg and mask decoding are blocking; keep them off the server loop
-        await asyncio.to_thread(
-            asyncio.run, analyze_room(video, video.parent, on_event=job.events.append)
-        )
+        await asyncio.to_thread(asyncio.run, work)
         job.status = "done"
     except Exception as e:
         job.status, job.error = "error", f"{type(e).__name__}: {e}"
@@ -98,20 +100,27 @@ async def run_analysis(room_id: str, video: Path) -> None:
 
 
 @app.post("/api/rooms")
-async def create_room(video: UploadFile) -> dict:
+async def create_room(photos: list[UploadFile] = File(default=[]), video: UploadFile | None = None) -> dict:
+    """1-3 photos of a room (the main way, ~20 s) or a video (full tracking, ~5 min)."""
+    files = photos[:MAX_PHOTOS] or ([video] if video else [])
+    if not files:
+        raise HTTPException(400, "Add a photo of your room.")
     if PUBLIC and sum(j.status == "processing" for j in jobs.values()) >= MAX_ANALYSES:
         raise HTTPException(429, "Roomtake is analyzing other rooms right now. Try again in a few minutes.")
-    if video.size and video.size > MAX_UPLOAD_MB * 2**20:
-        raise HTTPException(413, f"That video is over {MAX_UPLOAD_MB} MB. Film about 30 seconds.")
+    if any(f.size and f.size > MAX_UPLOAD_MB * 2**20 for f in files):
+        raise HTTPException(413, f"That file is over {MAX_UPLOAD_MB} MB.")
     room_id = uuid.uuid4().hex[:10]
     out = ROOMS / room_id
     out.mkdir(parents=True)
-    suffix = Path(video.filename or "video.mov").suffix.lower() or ".mov"
-    path = out / f"source{suffix}"
-    with path.open("wb") as f:
-        shutil.copyfileobj(video.file, f)
+    paths = []
+    for i, f in enumerate(files):
+        suffix = Path(f.filename or "").suffix.lower() or (".jpg" if photos else ".mov")
+        path = out / f"source{i}{suffix}"
+        with path.open("wb") as dst:
+            shutil.copyfileobj(f.file, dst)
+        paths.append(path)
     jobs[room_id] = Job()
-    jobs[room_id].task = asyncio.create_task(run_analysis(room_id, path))
+    jobs[room_id].task = asyncio.create_task(run_analysis(room_id, paths, "photos" if photos else "video"))
     return {"id": room_id, "status": "processing"}
 
 

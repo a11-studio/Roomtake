@@ -61,7 +61,7 @@
     color: var(--how-muted);
   }
 
-  /* ---- 1 Film: the camera pans across the room, finds land on it ---- */
+  /* ---- 1 Snap: the camera settles on the room, a shot, finds land on it ---- */
 
   .how-film {
     position: absolute;
@@ -74,8 +74,10 @@
     left: 0;
     height: 350px;
     aspect-ratio: 16 / 9;
-    transform: translateX(-16px);
-    transition: transform 4.6s var(--how-ease);
+    /* starts a little left and close, settles like a hand framing the shot */
+    transform: translateX(calc(-100% + 470px)) scale(1.06);
+    transform-origin: 70% 60%;
+    transition: transform 1.4s var(--how-arrive);
   }
   .how-film__pan[data-pan] {
     transform: translateX(calc(-100% + 402px));
@@ -134,44 +136,64 @@
     box-shadow: 0 2px 8px rgb(0 0 0 / 0.18);
   }
 
-  .how-film__rec {
+  .how-film__flash {
     position: absolute;
-    top: 114px;
-    left: 50%;
-    transform: translateX(-50%);
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    height: 34px;
-    padding: 0 14px;
-    border-radius: 999px;
-    background: rgb(0 0 0 / 0.45);
-    color: #fff;
-    font-size: 17px;
-    font-variant-numeric: tabular-nums;
+    inset: 0;
+    background: #fff;
+    opacity: 0;
+    transition: opacity 0.35s ease-out;
+    pointer-events: none;
   }
-  .how-film__recdot {
-    width: 11px;
-    height: 11px;
-    border-radius: 999px;
-    background: #ff453a;
+  .how-film__flash[data-on] {
+    opacity: 0.85;
+    transition-duration: 0.06s;
+  }
+  /* the photo just taken, in the corner like the camera app's roll */
+  .how-film__thumb {
+    position: absolute;
+    top: 464px; /* centred on the shutter */
+    left: 44px;
+    width: 52px;
+    height: 52px;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 0 0 2px rgb(255 255 255 / 0.9);
+    opacity: 0;
+    transform: scale(0.6);
+    transition:
+      opacity 0.25s ease,
+      transform 0.5s var(--how-arrive);
+  }
+  .how-film__thumb[data-on] {
+    opacity: 1;
+    transform: none;
+  }
+  .how-film__thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: 75% 50%;
   }
   .how-film__shutter {
     position: absolute;
-    top: 458px;
+    top: 458px; /* ends above the stage's foot fade */
     left: 50%;
     width: 64px;
     height: 64px;
     margin-left: -32px;
     border-radius: 999px;
-    border: 5px solid #fff;
+    border: 4px solid #fff;
   }
   .how-film__shutter::after {
     content: "";
     position: absolute;
-    inset: 14px;
-    border-radius: 7px;
-    background: #ff453a;
+    inset: 4px;
+    border-radius: 999px;
+    background: #fff;
+    transition: transform 0.15s ease;
+  }
+  .how-film__shutter[data-pressed]::after {
+    transform: scale(0.88);
   }
 
   /* ---- 2 Pick a style ---- */

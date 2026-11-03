@@ -32,10 +32,18 @@ export function Preferences({
   const [budget, setBudget] = useState(2000);
   const [keep, setKeep] = useState<string[]>([]);
 
+  // per kind, the most seen on one photo: the same sofa on two photos is one sofa
   const counts = useMemo(() => {
     const c = new Map<string, number>();
-    room.objects.filter((o) => o.category !== "zone").forEach((o) => c.set(o.label, (c.get(o.label) ?? 0) + 1));
-    return [...c.entries()];
+    room.objects
+      .filter((o) => o.category !== "zone")
+      .forEach((o) => c.set(`${o.label}|${o.best_frame}`, (c.get(`${o.label}|${o.best_frame}`) ?? 0) + 1));
+    const best = new Map<string, number>();
+    c.forEach((n, key) => {
+      const label = key.split("|")[0];
+      best.set(label, Math.max(best.get(label) ?? 0, n));
+    });
+    return [...best.entries()];
   }, [room]);
   // one chip per kind of furniture ("chair ×4" keeps all four)
   const furniture = useMemo(() => {
@@ -67,7 +75,7 @@ export function Preferences({
           <section className="mt-8">
             <p className="eyebrow">Your room</p>
             <h1 className="mt-2 text-[28px] font-semibold tracking-tight lg:text-[36px]">
-              We found {room.objects.length} things
+              We found {counts.reduce((sum, [, n]) => sum + n, 0)} things
             </h1>
             <ul className="mt-4 flex flex-wrap gap-1.5">
               {counts.map(([label, n], i) => (

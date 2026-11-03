@@ -8,7 +8,7 @@ const FONT_CSS =
 
 export const metadata: Metadata = {
   title: "Roomtake",
-  description: "Film your room. Get a real redesign with products you can buy.",
+  description: "Snap your room. Get a real redesign with products you can buy.",
   icons: { icon: "/RoomTake-light.svg" },
 };
 

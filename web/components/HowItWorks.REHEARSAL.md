@@ -6,10 +6,10 @@ the bottom of a 400 px stage, touch cursor, one app whose screens change).
 **What changed:** our product instead of a fitness app. Three scenes in one
 phone, played as a carousel with step tabs below the stage:
 
-1. Film: the camera pans across our real living room (frame_0107); four SAM
-   finds land as they come into view. Each find leaves before the pan takes it
-   out, and the one near the right edge carries its label on the left, so no
-   label is ever cut by the screen edge (checked every 100 ms over the scene).
+1. Snap: the camera settles on our real living room (frame_0107), a tap on the
+   white shutter, a flash, the photo's thumbnail lands left of the shutter, then
+   three SAM finds land on the photo one by one. The one near the right edge
+   carries its label on the left, so no label is cut by the screen edge.
 2. Pick a style: a tap on Japandi (tile goes ink), the button's label changes
    in its own slot (`States`), a tap on the button.
 3. See it, buy it: the divider travels from the right edge to the middle and
@@ -27,8 +27,7 @@ the phone's shadow stays inside the side gutter so the stage never cuts it.
 **Poster:** the last scene with the product card in (the payoff); the tabs show
 step 3 under reduced motion to match.
 
-**Checked:** 375 px and 1440 px; all three scenes; label clipping during the
-pan; tab tap restarts at that step; the shutter is whole after moving the
+**Checked:** 375 px and 1440 px; all three scenes; label clipping; tab tap restarts at that step; the shutter is whole after moving the
 camera view up.
 
 **Not checked:** `film.mjs --gate` (the skill's filming script) was not run;

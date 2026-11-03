@@ -7,8 +7,9 @@ Meta Global AI Developer Hackathon · Startup track · "Build for Your World"
 **Live:** https://roomtake-woad.vercel.app (open it on a phone; "Try our demo living room"
 shows a room that is already analyzed) · API: https://roomtake-api.fly.dev
 
-Film your room → we find what's in it → an AI architect suggests 3–5 concrete changes
-with real products → we paint those products into **your actual photo**, the rest stays untouched.
+Snap 1–3 photos of your room → SAM 3.1 finds what's in them → an AI stylist restyles the
+whole room in the style you pick, with real products → painted into **your actual photo**,
+the layout stays.
 
 Runtime AI is **Meta models only**: SAM 3.1, Muse Wonder, Muse Spark, Muse Image
 (optionally Muse Voice Transcribe), via the [Meta Model API](https://dev.meta.ai/docs/).
@@ -16,8 +17,8 @@ Runtime AI is **Meta models only**: SAM 3.1, Muse Wonder, Muse Spark, Muse Image
 ## Pipeline
 
 ```
-video ──ffmpeg 10 fps/720p──▶ SAM 3.1 tracks each concept through the whole clip ──▶ room.json
-                                (inventory, masks, hero views: main room + free zones like the balcony)
+photos ──1280 px, one 1-frame clip each──▶ SAM 3.1 finds each concept on each photo ──▶ room.json
+                                (inventory, masks; each photo is a view: the room, or a free zone like the balcony)
 room.json + views + catalog shortlist ──Muse Wonder──▶ style brief + real products that fit the style
 view + SAM layout map + product photos ──Muse Image──▶ the room restyled with those products, same layout
 restyled main view ──SAM 3.1──▶ layout check (IoU per piece)
@@ -29,12 +30,13 @@ matches first, within budget) and uses one only where it truly fits; everything 
 drawn freely. Muse Image gets the product photos as references and draws them into the
 room, so the pieces you see are the ones you can buy. A look takes ~55-75 s.
 
-Room analysis tracks the full video at 10 fps: ~4–5 min for 23 concepts on a
-24 s clip. Faster modes (keyframes as images, keyframes as a 1 fps clip, ~20 s)
-got details wrong: 5 chairs instead of 4, shelves split into boards in
-close-ups, small side tables missed. One track = one real object. The API
-serves a team at ~20 video frames/s total (`spikes/t1b_latency.py`), so the UI
-shows progress per concept, and demo videos are pre-processed.
+Room analysis takes ~20 s for 2 photos and 23 concepts (`app/pipeline/photos.py`). Each
+photo goes to SAM as a 1-frame clip: video requests get ~20 frames/s of throughput per
+team, image requests ~1.3 images/s (`spikes/t1b_latency.py`). We started with video:
+SAM 3.1 tracked the full clip at 10 fps (`app/pipeline/room.py`, still in the API), one
+track per real object, but it took 4–5 min per room, needed a dedicated CPU to decode
+thousands of masks, and the product only ever restyles 1–2 views. Photos give those
+views directly, sharper than video frames, and the user picks them.
 
 Model roles: **Muse Wonder** writes the style brief (and the per-item plan);
 **Muse Spark** handles small, frequent calls: revisions, item descriptions.
@@ -50,7 +52,8 @@ backend/                 Python 3.12+, uv
       video.py           normalize, frame dump, keyframe picking
       sam.py             SAM 3.1 upload / segment / tracks / masks
       concepts.py        what SAM looks for: furniture, decor, fixture, zone
-      room.py            video -> keyframes -> SAM -> room.json
+      photos.py          1-3 photos -> SAM -> room.json (the app's path)
+      room.py            video -> keyframes -> SAM -> room.json (full tracking, kept for later)
       preview.py         debug drawings (masks + IDs)
     agent/
       stylist.py         Wonder writes the brief and picks real products; Spark revises
@@ -111,7 +114,7 @@ uv run uvicorn app.main:app --reload --port 8000
 
 | | |
 |---|---|
-| `POST /api/rooms` (multipart `video`) | upload, analysis starts → `{id}` |
+| `POST /api/rooms` (multipart `photos`, 1–3; or `video`) | upload, analysis starts → `{id}` |
 | `GET /api/rooms/{id}/events` | server-sent progress: `keyframes`, `uploaded`, one `found` per concept, `done`, `status` |
 | `GET /api/rooms/{id}` | `status` + `room` (room.json) when done |
 | `GET /api/rooms/{id}/files/{path}` | frames, masks, renders |

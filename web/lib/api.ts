@@ -18,7 +18,8 @@ export type RoomObject = {
 };
 
 export type Room = {
-  source_video: string;
+  source?: "photos";
+  source_video: string | null;
   keyframes: { file: string; time_s: number }[];
   views: { file: string; frame: number; kind: "main" | "zone"; label: string }[];
   objects: RoomObject[];
@@ -67,8 +68,9 @@ async function json<T>(res: Response): Promise<T> {
   return res.json();
 }
 
-export function uploadVideo(file: File, onProgress: (pct: number) => void): Promise<{ id: string }> {
-  // XHR rather than fetch: fetch has no upload progress, and room videos are large.
+/** 1-3 photos of the room (the first is the room itself, e.g. a balcony can follow). */
+export function uploadPhotos(files: File[], onProgress: (pct: number) => void): Promise<{ id: string }> {
+  // XHR rather than fetch: fetch has no upload progress, and phone photos are several MB.
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
     xhr.open("POST", `${API}/api/rooms`);
@@ -83,7 +85,7 @@ export function uploadVideo(file: File, onProgress: (pct: number) => void): Prom
     };
     xhr.onerror = () => reject(new Error("Upload failed"));
     const form = new FormData();
-    form.append("video", file);
+    files.slice(0, 3).forEach((f) => form.append("photos", f));
     xhr.send(form);
   });
 }

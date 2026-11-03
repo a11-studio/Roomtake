@@ -6,18 +6,18 @@ import { API, type ProgressEvent } from "@/lib/api";
 
 const TOTAL_CONCEPTS = 23; // backend/app/pipeline/concepts.py
 
-/** Live "what we found" while SAM tracks the video. Calls onDone when the room is ready. */
+/** Live "what we found" while SAM looks at the photos. Calls onDone when the room is ready. */
 export function Analysis({ roomId, onDone }: { roomId: string; onDone: () => void }) {
   const [found, setFound] = useState<{ concept: string; count: number }[]>([]);
   const [checked, setChecked] = useState(0);
-  const [stage, setStage] = useState("Preparing your video");
+  const [stage, setStage] = useState("Preparing your photos");
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const es = new EventSource(`${API}/api/rooms/${roomId}/events`);
     es.onmessage = (msg) => {
       const e = JSON.parse(msg.data) as ProgressEvent;
-      if (e.type === "keyframes") setStage("Sending it to SAM 3.1");
+      if (e.type === "keyframes") setStage("Sending them to SAM 3.1");
       if (e.type === "uploaded") setStage("Finding your furniture");
       if (e.type === "found") {
         setChecked((n) => n + 1);
@@ -52,7 +52,7 @@ export function Analysis({ roomId, onDone }: { roomId: string; onDone: () => voi
         />
       </div>
       <p className="mt-3 text-sm text-muted">
-        {checked} of {TOTAL_CONCEPTS} kinds of things checked · usually 3–5 minutes
+        {checked} of {TOTAL_CONCEPTS} kinds of things checked · usually under a minute
       </p>
 
       <section className="mt-10">
