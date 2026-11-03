@@ -12,9 +12,19 @@ export function Orb({ className = "size-10", active = false }: { className?: str
     if (!v) return;
     const still = window.matchMedia("(prefers-reduced-motion: reduce)");
     const sync = () => (still.matches ? v.pause() : v.play().catch(() => {}));
+    // iOS Safari sometimes stops at the end despite `loop`: start it over
+    const again = () => {
+      if (still.matches) return;
+      v.currentTime = 0;
+      v.play().catch(() => {});
+    };
     sync();
     still.addEventListener("change", sync);
-    return () => still.removeEventListener("change", sync);
+    v.addEventListener("ended", again);
+    return () => {
+      still.removeEventListener("change", sync);
+      v.removeEventListener("ended", again);
+    };
   }, []);
 
   return (
@@ -25,8 +35,9 @@ export function Orb({ className = "size-10", active = false }: { className?: str
       } ${className}`}
     >
       <video ref={ref} poster="/orb.jpg" autoPlay loop muted playsInline preload="auto" className="size-full object-cover">
-        <source src="/orb.webm" type="video/webm" />
+        {/* H.264 first: Safari loops it reliably; the VP9 copy is the same size */}
         <source src="/orb.mp4" type="video/mp4" />
+        <source src="/orb.webm" type="video/webm" />
       </video>
     </span>
   );
