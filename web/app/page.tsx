@@ -4,7 +4,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
-import { ArchLines } from "@/components/ArchLines";
 import { HowItWorks } from "@/components/HowItWorks";
 import { uploadPhotos } from "@/lib/api";
 
@@ -47,8 +46,7 @@ export default function Home() {
           </p>
         </section>
 
-        <section aria-label="How it works" className="relative isolate mt-5 lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:mt-0 lg:self-center">
-          <ArchLines />
+        <section aria-label="How it works" className="mt-5 lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:mt-0 lg:self-center">
           <HowItWorks />
         </section>
 

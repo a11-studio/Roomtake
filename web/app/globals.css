@@ -56,38 +56,6 @@ html:has(.home),
 html:has(.home) body {
   background: var(--veil);
 }
-/* the archway behind the demo is wider than a phone screen: clip it at the
-   screen's edge without making the page scroll sideways */
-html:has(.home) body {
-  overflow-x: clip;
-}
-
-/* Home: the line-halftone archway the phone demo stands in (ArchLines.tsx).
-   Sized off the demo's width: 1.5x as wide, its opening's top a little above
-   the phone; it fades out towards the buttons. */
-.arch-lines {
-  display: none;
-  position: absolute;
-  z-index: -1;
-  top: 0;
-  left: -25%;
-  width: 150%;
-  height: auto;
-  aspect-ratio: 600 / 660;
-  margin-top: -27.5%;
-  fill: var(--umber);
-  opacity: 0.55;
-  pointer-events: none;
-  -webkit-mask-image: linear-gradient(to bottom, #000 55%, transparent 90%);
-  mask-image: linear-gradient(to bottom, #000 55%, transparent 90%);
-  animation: arch-in 1.4s var(--ease-arrive) both;
-}
-@media (min-width: 1024px) {
-  .arch-lines { display: block; }
-}
-@keyframes arch-in {
-  from { opacity: 0; transform: translateY(12px); }
-}
 
 ::selection {
   background: var(--ink);
@@ -197,7 +165,6 @@ input[type="range"].range::-moz-range-thumb {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .arch-lines { animation: none; }
   .pop-in, .page-in, .shimmer::after, .breathe { animation: none; }
   .fold, .fold[data-open="true"] { transition: none; }
   .thinking { animation: none; color: var(--ink); background: none; }
