@@ -57,6 +57,37 @@ def _ld_products(html: str) -> list[dict]:
     return out
 
 
+CURRENCY_SIGNS = {"€": "EUR", "Kč": "CZK", "zł": "PLN", "Ft": "HUF", "CHF": "CHF"}
+
+
+def _html_product(html: str, url: str) -> dict | None:
+    """The shown variant from the page itself, for shop pages without schema.org
+    data (Westwing's newer Shopify storefront): name and packshot from the Open
+    Graph tags, the price as rendered, dimensions from the page's filter data.
+    Returned in the schema.org shape that import_url reads."""
+    def meta(prop: str) -> str | None:
+        m = re.search(rf'<meta property="{prop}" content="([^"]+)"', html)
+        return m and m.group(1)
+
+    name, image = meta("og:title"), meta("og:image:secure_url") or meta("og:image")
+    price = re.search(r'data-testid="product-price">([^<]+)<', html)
+    if not (name and image and price):
+        return None
+    # "2 299 €", "2.299,00 €", "1,299.00 €": drop thousands separators, keep the decimal
+    digits = re.sub(r"[^\d,.]", "", price.group(1))
+    amount = re.sub(r"[.,](?=\d{3}\b)", "", digits).replace(",", ".")
+    sign = next((c for s, c in CURRENCY_SIGNS.items() if s in price.group(1)), "EUR")
+    sku = re.search(r"[?&]simple=([A-Za-z0-9-]+)", url) or re.search(r"/files/([A-Za-z0-9-]+)_", image)
+    size = dict(re.findall(r'filter(Width|Height|Depth)\\",\{[^}]*\},\\"([\d.]+)\\"', html))
+    return {
+        "name": re.split(r"\s*[❘|]\s*Westwing", name)[0].strip(),
+        "sku": sku.group(1) if sku else name,
+        "image": image.replace("&amp;", "&"),
+        "offers": {"price": amount, "priceCurrency": sign},
+        **{k.lower(): {"value": v} for k, v in size.items()},
+    }
+
+
 def _image(node: dict) -> str | None:
     """schema.org image: a URL, an ImageObject, or a list of either."""
     img = node.get("image")
@@ -103,6 +134,8 @@ async def import_url(url: str) -> list[dict]:
         r = await http.get(url)
     r.raise_for_status()
     variants = _ld_products(r.text)
+    if not variants and (shown := _html_product(r.text, str(r.url))):
+        variants = [shown]
     if not variants:
         raise ValueError("No product data found on that page.")
 
