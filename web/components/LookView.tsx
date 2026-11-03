@@ -314,19 +314,29 @@ export function LookView({
                   }}
                 >
                   <Orb className="size-9" active={busy || !!text.trim() || dictation.state !== "idle"} />
-                  <input
-                    value={text}
-                    onChange={(e) => setText(e.target.value)}
-                    disabled={busy || dictation.state !== "idle"}
-                    placeholder={
-                      dictation.state === "recording"
-                        ? `Listening… 0:${String(dictation.seconds).padStart(2, "0")}`
-                        : dictation.state === "transcribing"
-                          ? "Writing it down…"
-                          : "Say or type a change"
-                    }
-                    className="min-w-0 flex-1 rounded-2xl bg-transparent px-1.5 py-3 text-[16px] outline-none placeholder:text-muted/70"
-                  />
+                  <span className="relative flex min-w-0 flex-1">
+                    <input
+                      value={text}
+                      onChange={(e) => setText(e.target.value)}
+                      disabled={busy || dictation.state !== "idle"}
+                      placeholder={
+                        dictation.state === "recording"
+                          ? `Listening… 0:${String(dictation.seconds).padStart(2, "0")}`
+                          : dictation.state === "transcribing"
+                            ? ""
+                            : "Say or type a change"
+                      }
+                      className={`min-w-0 flex-1 rounded-2xl bg-transparent px-1.5 py-3 text-[16px] outline-none placeholder:text-muted/70 ${
+                        dictation.state === "transcribing" ? "text-transparent" : ""
+                      }`}
+                    />
+                    {/* a placeholder can't shimmer: the same "thinking" text as the loader, laid over the field */}
+                    {dictation.state === "transcribing" && (
+                      <span aria-live="polite" className="thinking pointer-events-none absolute inset-y-0 left-1.5 flex items-center text-[16px]">
+                        Writing it down…
+                      </span>
+                    )}
+                  </span>
                   <MicButton state={dictation.state} disabled={busy} onClick={dictation.toggle} />
                   <button
                     disabled={busy || !text.trim() || dictation.state !== "idle"}
