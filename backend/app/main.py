@@ -334,7 +334,11 @@ def list_looks(room_id: str) -> list[dict]:
         look = json.loads(f.read_text())
         out.append({"id": look["id"], "status": look["status"], "created": look["created"],
                     "title": (look.get("brief") or {}).get("title"), "instruction": look.get("instruction")})
-    return sorted(out, key=lambda x: -x["created"])
+    # A room can pin the look it opens on (the public demo room: a visitor's new
+    # look shows for them, but never replaces the one everyone else lands on).
+    featured = room_dir(room_id) / "featured"
+    pin = featured.read_text().strip() if featured.exists() else None
+    return sorted(out, key=lambda x: (x["id"] != pin, -x["created"]))
 
 
 @app.get("/api/rooms/{room_id}/looks/{look_id}")
