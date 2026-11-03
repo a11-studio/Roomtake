@@ -5,12 +5,7 @@
 .how {
   & .ss-stage {
     background: transparent;
-    overflow: hidden;
-    /* the phone runs off the bottom: fade its foot into the page instead of
-       a hard crop line (stageshow fade-crop). The fade covers only the
-       screen's empty foot; every scene's last control sits above it. */
-    -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 40px), transparent);
-    mask-image: linear-gradient(to bottom, #000 calc(100% - 40px), transparent);
+    overflow: visible; /* the cast steps out past the stage's edges */
     font-family: "Google Sans Flex", system-ui, sans-serif;
     --ss-text-strong: #18211f;
     --how-ink: #18211f;
@@ -19,6 +14,17 @@
     --how-veil: #e0d6cc;
     --how-ease: cubic-bezier(0.45, 0, 0.1, 1);
     --how-arrive: cubic-bezier(0.25, 0.8, 0.25, 1);
+  }
+
+  /* the phone runs off the bottom: fade its foot into the page instead of
+     a hard crop line (stageshow fade-crop). The fade covers only the
+     screen's empty foot; every scene's last control sits above it. */
+  .how-frame {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 40px), transparent);
+    mask-image: linear-gradient(to bottom, #000 calc(100% - 40px), transparent);
   }
 
   .how-phone {
@@ -34,6 +40,13 @@
   & .ss-stage[data-layout="compact"] .how-phone {
     top: 16px;
     left: 16px;
+  }
+  /* On a phone the page has no room beside the stage: the cast shrinks and
+     keeps to the side gutters */
+  & .ss-stage[data-layout="compact"] {
+    .how-person--1 { --x: 252px; --y: 312px; --w: 118px; }
+    .how-person--2 { --x: -12px; --y: 327px; --w: 108px; } /* sits at 3's spot: above the phone she would cover the text */
+    .how-person--3 { --x: -14px; --y: 293px; --w: 131px; }
   }
 
   /* Screens: one app, the body crossfades with a small rise */
@@ -60,6 +73,41 @@
     line-height: 1.3;
     font-weight: 500;
     color: var(--how-muted);
+  }
+
+  /* ---- The cast: one person per step, standing on the page beside the
+     phone. Each steps in as its scene starts and out as it ends. ---- */
+
+  .how-person {
+    position: absolute;
+    left: var(--x);
+    top: var(--y);
+    width: var(--w);
+    aspect-ratio: 2 / 3;
+    pointer-events: none;
+    user-select: none;
+    opacity: 0;
+    transform: translateY(14px) scale(0.96);
+    transform-origin: 50% 100%;
+    transition:
+      opacity 0.3s ease,
+      transform 0.5s var(--how-arrive);
+  }
+  .how-person[data-on] {
+    opacity: 1;
+    transform: none;
+    transition-delay: 0.15s; /* after its screen has started to come in */
+  }
+  /* 1 takes the photo, from the phone's right foot */
+  .how-person--1 { --x: 331px; --y: 283px; --w: 159px; }
+  /* 2 sits on the phone's top edge while you choose */
+  .how-person--2 { --x: 88px; --y: -119px; --w: 112px; }
+  /* 3 points at the result, from the phone's left foot */
+  .how-person--3 { --x: -41px; --y: 257px; --w: 177px; }
+  /* Above the desktop grid the text sits right over the phone: 2 takes 3's
+     spot instead of the phone's top edge */
+  @media (max-width: 1023px) {
+    .how-person--2 { --x: -52px; --y: 312px; --w: 146px; }
   }
 
   /* ---- 1 Snap: the camera settles on the room, a shot, finds land on it ---- */

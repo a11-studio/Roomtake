@@ -15,6 +15,7 @@ import "./how-it-works.css";
 // Real strings: four object names, four style names, the button, the look's
 // title, the product and its price. The rest is image or shape.
 // Scenes swap like screens in one app: the body crossfades, the phone stays.
+// Beside the phone, one person per step (the cast): they step in with it.
 
 type Step = 0 | 1 | 2;
 type S = {
@@ -57,6 +58,9 @@ const STYLES = [
   { name: "Art Deco", swatches: ["#1f4d3e", "#c9a34e", "#1e2a44"] },
   { name: "Mid-Century", swatches: ["#8a5a3b", "#d4a23a", "#6b7f4e"] },
 ];
+
+// Who keeps each step company, outside the phone (positions in .how-cast)
+const CAST = ["/demo/person1.webp", "/demo/person2.webp", "/demo/person3.webp"] as const;
 
 function makeScript(start: Step, onStep: (s: Step) => void) {
   const scenes: Record<Step, (a: Act<S>) => Promise<void>> = {
@@ -237,17 +241,25 @@ export function HowItWorks() {
         className="how"
       >
         {(s, _rect, layout) => (
-          <Phone width={layout === "compact" ? 326 : 340} dark={s.step === 0} className="how-phone">
-            <div className="how-screen" data-on={s.step === 0 || undefined}>
-              <Snap s={s} />
+          <>
+            <div className="how-frame">
+              <Phone width={layout === "compact" ? 326 : 340} dark={s.step === 0} className="how-phone">
+                <div className="how-screen" data-on={s.step === 0 || undefined}>
+                  <Snap s={s} />
+                </div>
+                <div className="how-screen how-screen--light" data-on={s.step === 1 || undefined}>
+                  <Pick s={s} />
+                </div>
+                <div className="how-screen how-screen--light" data-on={s.step === 2 || undefined}>
+                  <See s={s} />
+                </div>
+              </Phone>
             </div>
-            <div className="how-screen how-screen--light" data-on={s.step === 1 || undefined}>
-              <Pick s={s} />
-            </div>
-            <div className="how-screen how-screen--light" data-on={s.step === 2 || undefined}>
-              <See s={s} />
-            </div>
-          </Phone>
+            {CAST.map((src, i) => (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img key={src} src={src} alt="" className={`how-person how-person--${i + 1}`} data-on={s.step === i || undefined} />
+            ))}
+          </>
         )}
       </Stage>
 

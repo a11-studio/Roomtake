@@ -75,7 +75,8 @@ html:has(.home) body {
 .bleed {
   margin-inline: calc(50% - 50vw);
 }
-html:has(.bleed) body {
+html:has(.bleed) body,
+html:has(.home) body {
   overflow-x: clip;
 }
 
