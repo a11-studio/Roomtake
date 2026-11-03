@@ -4,9 +4,26 @@ import { useEffect, useState } from "react";
 import { BeforeAfter } from "@/components/BeforeAfter";
 import { ArrowUp } from "@/components/Icons";
 import { Orb } from "@/components/Orb";
-import { fileUrl, getLook, thumb, type Look, type ProductUse } from "@/lib/api";
+import { fileUrl, getLook, thumb, type Look, type ProductUse, type Room } from "@/lib/api";
+import { CONTRAST, styleOf } from "@/lib/styles";
 
-const QUICK = ["Warmer and cosier", "Keep my sofa", "More plants", "Try Art Deco instead"];
+/** Quick changes that fit this look: keep the room's biggest piece, try a
+ * contrasting style (never the one you have), never the change just made. */
+function suggestions(look: Look, room: Room | null): string[] {
+  // the piece people care about most: a sofa first, else the biggest furniture
+  const rank = (label: string) => ["sofa", "armchair", "dining table", "bed"].indexOf(label) + 1 || 99;
+  const biggest = room?.objects
+    .filter((o) => o.category === "furniture")
+    .sort((a, b) => rank(a.label) - rank(b.label) || b.approx_size.frame_area_pct - a.approx_size.frame_area_pct)[0];
+  const style = styleOf(look.instruction, look.brief?.title, look.prefs?.style);
+  const next = style ? CONTRAST[style] : "Japandi";
+  return [
+    "Warmer and cosier",
+    biggest && `Keep my ${biggest.label}`,
+    "More plants",
+    `Try ${next} instead`,
+  ].filter((q): q is string => !!q && q.toLowerCase() !== look.instruction?.toLowerCase());
+}
 
 const STEPS: { status: Look["status"]; label: string; hint: string }[] = [
   { status: "brief", label: "Reading your room", hint: "The stylist picks a direction and real pieces that fit" },
@@ -120,11 +137,13 @@ function UsedProduct({ use, index }: { use: ProductUse; index: number }) {
 
 export function LookView({
   roomId,
+  room,
   lookId,
   busy,
   onRevise,
 }: {
   roomId: string;
+  room: Room | null;
   lookId: string;
   busy: boolean;
   onRevise: (instruction: string) => void;
@@ -255,7 +274,7 @@ export function LookView({
               <section className="mt-12">
                 <p className="eyebrow">Try a change</p>
                 <div className="mt-3 flex flex-wrap gap-2">
-                  {QUICK.map((q) => (
+                  {suggestions(look, room).map((q) => (
                     <button
                       key={q}
                       disabled={busy}
@@ -280,7 +299,7 @@ export function LookView({
                     onChange={(e) => setText(e.target.value)}
                     disabled={busy}
                     placeholder="Tell the stylist what to change"
-                    className="min-w-0 flex-1 rounded-2xl bg-transparent px-1.5 py-3 text-[15px] outline-none placeholder:text-muted/70"
+                    className="min-w-0 flex-1 rounded-2xl bg-transparent px-1.5 py-3 text-[16px] outline-none placeholder:text-muted/70"
                   />
                   <button
                     disabled={busy || !text.trim()}

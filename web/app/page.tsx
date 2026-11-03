@@ -3,24 +3,41 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { HowItWorks } from "@/components/HowItWorks";
+import { Close, Plus } from "@/components/Icons";
 import { uploadPhotos } from "@/lib/api";
 
 const DEMO_ROOM = "IMG_1184";
+const MAX_PHOTOS = 3;
+
+/** Local previews for picked photos, released when they change. */
+function usePreviews(files: File[]) {
+  const urls = useMemo(() => files.map((f) => URL.createObjectURL(f)), [files]);
+  useEffect(() => () => urls.forEach((u) => URL.revokeObjectURL(u)), [urls]);
+  return urls;
+}
 
 export default function Home() {
   const router = useRouter();
   const input = useRef<HTMLInputElement>(null);
+  const [photos, setPhotos] = useState<File[]>([]);
+  const previews = usePreviews(photos);
   const [progress, setProgress] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  async function onFiles(files: FileList | null) {
-    if (!files?.length) return;
+  // The camera takes one photo at a time (only the library allows several),
+  // so photos collect in a tray: add up to three, then start.
+  function onPick(files: FileList | null) {
+    if (files?.length) setPhotos((p) => [...p, ...files].slice(0, MAX_PHOTOS));
+    if (input.current) input.current.value = ""; // the same photo can be picked again
+  }
+
+  async function start() {
     setError(null);
     setProgress(0);
     try {
-      const { id } = await uploadPhotos([...files], setProgress);
+      const { id } = await uploadPhotos(photos, setProgress);
       router.push(`/room/${id}`);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Upload failed");
@@ -57,10 +74,47 @@ export default function Home() {
             accept="image/*"
             multiple
             className="hidden"
-            onChange={(e) => onFiles(e.target.files)}
+            onChange={(e) => onPick(e.target.files)}
           />
+          {photos.length > 0 && (
+            <div className="pop-in rounded-[28px] bg-card p-4 shadow-[var(--shadow-card)]">
+              <ul className="flex gap-2.5">
+                {previews.map((url, i) => (
+                  <li key={url} className="pop-in relative size-[72px] shrink-0">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={url} alt={`Photo ${i + 1}`} className="size-full rounded-2xl object-cover" />
+                    {progress === null && (
+                      <button
+                        onClick={() => setPhotos(photos.filter((_, j) => j !== i))}
+                        aria-label={`Remove photo ${i + 1}`}
+                        className="absolute -top-1.5 -right-1.5 grid size-6 place-items-center rounded-full bg-ink text-[11px] text-white ring-2 ring-card"
+                      >
+                        <Close />
+                      </button>
+                    )}
+                  </li>
+                ))}
+                {photos.length < MAX_PHOTOS && progress === null && (
+                  <li>
+                    <button
+                      onClick={() => input.current?.click()}
+                      aria-label="Add another photo"
+                      className="grid size-[72px] place-items-center rounded-2xl border border-dashed border-[#c9b9a7] text-[20px] text-umber transition-[background-color,transform] hover:bg-[#f7f4f1] active:scale-95"
+                    >
+                      <Plus />
+                    </button>
+                  </li>
+                )}
+              </ul>
+              <p className="mt-3 text-[13px] leading-snug text-muted">
+                {photos.length < MAX_PHOTOS
+                  ? "Add the room from another corner, or your balcony. Up to three photos."
+                  : "Three photos, that's plenty."}
+              </p>
+            </div>
+          )}
           <button
-            onClick={() => input.current?.click()}
+            onClick={() => (photos.length ? start() : input.current?.click())}
             disabled={progress !== null}
             className="relative w-full overflow-hidden rounded-full bg-ink py-4 hover:bg-[#2c3734] text-base font-medium text-white transition active:scale-[0.99] disabled:opacity-90"
           >
@@ -70,7 +124,13 @@ export default function Home() {
                 style={{ width: `${progress}%` }}
               />
             )}
-            <span className="relative">{progress === null ? "Snap your room" : `Uploading… ${progress}%`}</span>
+            <span className="relative">
+              {progress !== null
+                ? `Uploading… ${progress}%`
+                : photos.length
+                  ? `Design my room · ${photos.length} ${photos.length === 1 ? "photo" : "photos"}`
+                  : "Snap your room"}
+            </span>
           </button>
           <Link
             href={`/room/${DEMO_ROOM}`}

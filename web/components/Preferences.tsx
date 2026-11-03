@@ -4,19 +4,12 @@ import { useMemo, useState } from "react";
 import { Count } from "@/components/Count";
 import { Check, Plus, Shuffle } from "@/components/Icons";
 import { fileUrl, type Preferences as Prefs, type Room } from "@/lib/api";
-
-// Matches backend/app/catalog/models.py STYLES.
-const STYLES: { name: string; hint: string; swatches: string[] }[] = [
-  { name: "Scandinavian", hint: "Light oak, linen, bouclé", swatches: ["#efe8dc", "#c9a57d", "#9aa7a2"] },
-  { name: "Japandi", hint: "Low, calm and earthy", swatches: ["#e6ddcf", "#8c7a64", "#3b3631"] },
-  { name: "Art Deco", hint: "Velvet, brass, marble", swatches: ["#1f4d3e", "#c9a34e", "#1e2a44"] },
-  { name: "Mid-Century", hint: "Walnut, mustard, olive", swatches: ["#8a5a3b", "#d4a23a", "#6b7f4e"] },
-  { name: "Mediterranean", hint: "Rattan, terracotta, jute", swatches: ["#f3eee6", "#c56a42", "#b9a27c"] },
-];
+import { STYLES } from "@/lib/styles";
 
 const BUDGET = { min: 300, max: 8000, step: 100 };
 
-/** Room summary + the three quick choices before the stylist runs. */
+/** Two parts that read apart: what we found in your room (a quiet beige
+ * block, read-only), then the choices for the new look (white, tappable). */
 export function Preferences({
   roomId,
   room,
@@ -58,50 +51,59 @@ export function Preferences({
 
   return (
     <div className="pt-6 lg:pt-10">
-      <div className="-mx-5 flex snap-x gap-3 overflow-x-auto px-5 pb-1 [scrollbar-width:none] md:-mx-8 md:px-8 lg:mx-0 lg:px-0">
-        {room.keyframes.map((k) => (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            key={k.file}
-            src={fileUrl(roomId, k.file)}
-            alt=""
-            className="aspect-[4/3] w-60 shrink-0 snap-start rounded-2xl object-cover shadow-[var(--shadow-card)] lg:w-72"
-          />
-        ))}
+      <section aria-label="Your room" className="rounded-[28px] bg-[#f7f4f1] py-5 lg:py-7">
+        <div className="flex items-baseline justify-between px-5 lg:px-7">
+          <p className="eyebrow">Your room</p>
+          <p className="text-xs text-muted">
+            {room.views.length} {room.views.length === 1 ? "photo" : "photos"}
+          </p>
+        </div>
+        <div className="mt-3 flex snap-x gap-3 overflow-x-auto px-5 [scrollbar-width:none] lg:px-7">
+          {room.keyframes.map((k) => (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              key={k.file}
+              src={fileUrl(roomId, k.file)}
+              alt=""
+              className="h-40 w-auto max-w-none shrink-0 snap-start rounded-2xl object-cover lg:h-48"
+            />
+          ))}
+        </div>
+        <h1 className="mt-5 px-5 text-[24px] font-semibold tracking-tight lg:px-7 lg:text-[28px]">
+          We found {counts.reduce((sum, [, n]) => sum + n, 0)} things
+        </h1>
+        <ul className="mt-3 flex flex-wrap gap-1.5 px-5 lg:px-7">
+          {counts.map(([label, n], i) => (
+            // read-only: outlined and quiet, unlike the beige chips you can tap
+            <li
+              key={label}
+              className={`pop-in inline-flex h-7 items-center gap-1.5 rounded-full bg-card pl-3 text-[13px] text-umber ring-1 ring-inset ring-veil ${
+                n > 1 ? "pr-[5px]" : "pr-3"
+              }`}
+              style={{ animationDelay: `${i * 40}ms` }}
+            >
+              <span className="trim">{label}</span>
+              {n > 1 && <Count n={n} quiet />}
+            </li>
+          ))}
+          {freeZone && (
+            <li className="pop-in inline-flex h-7 items-center gap-1.5 rounded-full border border-dashed border-[#c9b9a7] px-3 text-[13px] text-umber">
+              <Plus className="text-[12px]" />
+              <span className="trim">empty {freeZone.label.replace(" floor", "")} to furnish</span>
+            </li>
+          )}
+        </ul>
+      </section>
+
+      <div className="mt-12 lg:mt-14">
+        <p className="eyebrow">Your new look</p>
+        <h2 className="mt-2 text-[28px] font-semibold tracking-tight lg:text-[36px]">Pick a style</h2>
       </div>
 
-      <div className="lg:mt-4 lg:grid lg:grid-cols-[minmax(0,1fr)_380px] lg:gap-x-14">
+      <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_380px] lg:gap-x-14">
         <div>
-          <section className="mt-8">
-            <p className="eyebrow">Your room</p>
-            <h1 className="mt-2 text-[28px] font-semibold tracking-tight lg:text-[36px]">
-              We found {counts.reduce((sum, [, n]) => sum + n, 0)} things
-            </h1>
-            <ul className="mt-4 flex flex-wrap gap-1.5">
-              {counts.map(([label, n], i) => (
-                <li
-                  key={label}
-                  className={`pop-in inline-flex h-7 items-center gap-1.5 rounded-full bg-[#f4efe9] pl-3 text-[13px] ${
-                    n > 1 ? "pr-[5px]" : "pr-3"
-                  }`}
-                  style={{ animationDelay: `${i * 40}ms` }}
-                >
-                  <span className="trim">{label}</span>
-                  {n > 1 && <Count n={n} />}
-                </li>
-              ))}
-              {freeZone && (
-                <li className="pop-in inline-flex h-7 items-center gap-1.5 rounded-full border border-dashed border-[#c9b9a7] px-3 text-[13px] text-muted">
-                  <Plus className="text-[12px]" />
-                  <span className="trim">empty {freeZone.label.replace(" floor", "")}, ready for something new</span>
-                </li>
-              )}
-            </ul>
-          </section>
-
-          <section className="mt-10">
-            <p className="eyebrow">Style</p>
-            <div className="mt-3 grid grid-cols-2 gap-3 md:grid-cols-3">
+          <section className="mt-5">
+            <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
               {STYLES.map((s) => {
                 const on = style === s.name;
                 return (
@@ -133,7 +135,7 @@ export function Preferences({
           </section>
         </div>
 
-        <aside className="lg:mt-8 lg:self-start lg:rounded-3xl lg:bg-[#f7f4f1] lg:p-7">
+        <aside className="lg:mt-5 lg:self-start lg:rounded-3xl lg:p-7 lg:shadow-[var(--shadow-card)]">
           <section className="mt-10 lg:mt-0">
             <div className="flex items-baseline justify-between">
               <p className="eyebrow">Budget for real pieces</p>

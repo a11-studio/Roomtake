@@ -94,7 +94,7 @@ export default function RoomPage({ params }: { params: Promise<{ id: string }> }
         {stage === "analyzing" && <Analysis roomId={id} onDone={load} />}
         {stage === "prefs" && room && <Preferences roomId={id} room={room} busy={busy} onSubmit={onStyle} />}
         {stage === "look" && lookId && (
-          <LookView key={lookId} roomId={id} lookId={lookId} busy={busy} onRevise={onRevise} />
+          <LookView key={lookId} roomId={id} room={room} lookId={lookId} busy={busy} onRevise={onRevise} />
         )}
       </div>
       {error && <p className="mt-8 rounded-2xl bg-card p-4 text-sm text-warn shadow-[var(--shadow-card)]">{error}</p>}

@@ -30,6 +30,8 @@ export function BeforeAfter({
 }) {
   const [phase, setPhase] = useState<Phase>("waiting");
   const [pos, setPos] = useState(100);
+  // the frame takes the photo's own shape (landscape or portrait), never a crop of it
+  const [ratio, setRatio] = useState<number | null>(null);
   const shown = useRef<string | null>(null);
 
   // Start the reveal only once the new image is decoded, so it never pops in half-loaded.
@@ -59,7 +61,10 @@ export function BeforeAfter({
   const travel = phase === "revealing" ? "1.1s var(--ease-travel)" : "0s";
 
   return (
-    <div className="relative aspect-video w-full select-none overflow-hidden bg-line">
+    <div
+      className="relative w-full select-none overflow-hidden bg-line"
+      style={{ aspectRatio: ratio ?? 4 / 3 }}
+    >
       {/* the new design, underneath */}
       {after && (
         // eslint-disable-next-line @next/next/no-img-element
@@ -71,6 +76,7 @@ export function BeforeAfter({
       <img
         src={before}
         alt={`${alt}, before`}
+        onLoad={(e) => setRatio(e.currentTarget.naturalWidth / e.currentTarget.naturalHeight)}
         className="absolute inset-0 size-full object-cover"
         style={{
           clipPath: `inset(0 ${100 - pos}% 0 0)`,

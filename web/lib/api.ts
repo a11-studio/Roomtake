@@ -15,6 +15,7 @@ export type RoomObject = {
   bbox: [number, number, number, number];
   color: { hex: string; name: string };
   confidence: number;
+  approx_size: { frame_area_pct: number; bbox_w_pct: number; bbox_h_pct: number };
 };
 
 export type Room = {
@@ -112,6 +113,7 @@ export type Look = {
   id: string;
   parent: string | null;
   instruction: string | null;
+  prefs?: Preferences;
   status: "brief" | "rendering" | "checking" | "done" | "error";
   error: string | null;
   brief: null | {
