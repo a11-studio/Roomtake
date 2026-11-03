@@ -31,19 +31,22 @@ from app import looks
 from app.agent.architect import make_plan, revise_plan
 from app.catalog import CATEGORIES, STYLES, Product, add_product, all_products, get_product, remove_product, search_products
 from app.catalog.curated import import_url
-from app.config import CURATE_ENABLED, DATA_DIR
+from app.config import CURATE_ENABLED, DATA_DIR, MAX_ANALYSES, MAX_UPLOAD_MB, PUBLIC
 from app.pipeline.room import analyze_room
 from app.render.visualize import visualize
 
 ROOMS = DATA_DIR / "rooms"
+ROOMS.mkdir(parents=True, exist_ok=True)
 SAFE_ID = re.compile(r"^[A-Za-z0-9_-]+$")
 
 app = FastAPI(title="Roomtake")
 app.add_middleware(
     CORSMiddleware,
     # any port on this machine or the home network, so a phone on the same
-    # Wi-Fi can open the dev web app (http://192.168.x.x:3000)
-    allow_origin_regex=r"http://(localhost|127\.0\.0\.1|192\.168\.\d+\.\d+|10\.\d+\.\d+\.\d+)(:\d+)?",
+    # Wi-Fi can open the dev web app (http://192.168.x.x:3000); and the
+    # deployed web app on Vercel, production and previews
+    allow_origin_regex=r"http://(localhost|127\.0\.0\.1|192\.168\.\d+\.\d+|10\.\d+\.\d+\.\d+)(:\d+)?"
+    r"|https://roomtake[a-z0-9-]*\.vercel\.app",
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -96,6 +99,10 @@ async def run_analysis(room_id: str, video: Path) -> None:
 
 @app.post("/api/rooms")
 async def create_room(video: UploadFile) -> dict:
+    if PUBLIC and sum(j.status == "processing" for j in jobs.values()) >= MAX_ANALYSES:
+        raise HTTPException(429, "Roomtake is analyzing other rooms right now. Try again in a few minutes.")
+    if video.size and video.size > MAX_UPLOAD_MB * 2**20:
+        raise HTTPException(413, f"That video is over {MAX_UPLOAD_MB} MB. Film about 30 seconds.")
     room_id = uuid.uuid4().hex[:10]
     out = ROOMS / room_id
     out.mkdir(parents=True)
@@ -139,13 +146,16 @@ async def room_events(room_id: str) -> StreamingResponse:
         if job is None:  # finished before this process started
             yield f"data: {json.dumps({'type': 'status', 'status': status(room_id)})}\n\n"
             return
-        sent = 0
+        sent = idle = 0
         while True:
             while sent < len(job.events):
                 yield f"data: {json.dumps(job.events[sent])}\n\n"
                 sent += 1
             if job.status != "processing" and sent == len(job.events):
                 return
+            idle += 1
+            if idle % 30 == 0:  # a comment every ~15 s keeps proxies from closing a quiet stream
+                yield ": ping\n\n"
             await asyncio.sleep(0.5)
 
     return StreamingResponse(stream(), media_type="text/event-stream")

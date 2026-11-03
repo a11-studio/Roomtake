@@ -1,0 +1,32 @@
+# Roomtake API on Fly.io:  fly deploy
+# Secrets: fly secrets set MODEL_API_KEY=...
+app = "roomtake-api"
+primary_region = "fra"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  # analyses and looks run in the background after the request returns,
+  # so the machine must not be stopped while nobody is connected
+  auto_stop_machines = "off"
+  auto_start_machines = true
+  min_machines_running = 1
+
+  [[http_service.checks]]
+    method = "GET"
+    path = "/api/catalog"
+    interval = "30s"
+    timeout = "5s"
+    grace_period = "20s"
+
+# rooms, frames and renders
+[[mounts]]
+  source = "roomtake_data"
+  destination = "/data"
+
+[[vm]]
+  size = "shared-cpu-2x"
+  memory = "4gb"

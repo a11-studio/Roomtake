@@ -4,9 +4,11 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-DATA_DIR = REPO_ROOT / "data"
 
 load_dotenv(REPO_ROOT / ".env")
+
+# Rooms, frames and renders; a deploy points this at its volume (ROOMTAKE_DATA=/data).
+DATA_DIR = Path(os.environ.get("ROOMTAKE_DATA") or REPO_ROOT / "data")
 
 META_BASE_URL = "https://api.meta.ai/v1"
 
@@ -31,4 +33,12 @@ def model_api_key() -> str:
     return key
 
 # Editing the curated catalog is for us, locally; a public deploy sets ROOMTAKE_PUBLIC=1.
-CURATE_ENABLED = not os.environ.get("ROOMTAKE_PUBLIC")
+PUBLIC = bool(os.environ.get("ROOMTAKE_PUBLIC"))
+CURATE_ENABLED = not PUBLIC
+
+# Guards on the public server, so a stranger's upload can't drain the credits:
+# SAM bills per video frame, so uploads are capped in size and length, and only
+# a couple of rooms are analyzed at once.
+MAX_UPLOAD_MB = 300
+MAX_VIDEO_S = 60
+MAX_ANALYSES = 2

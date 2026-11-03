@@ -73,7 +73,14 @@ export function uploadVideo(file: File, onProgress: (pct: number) => void): Prom
     const xhr = new XMLHttpRequest();
     xhr.open("POST", `${API}/api/rooms`);
     xhr.upload.onprogress = (e) => e.lengthComputable && onProgress(Math.round((e.loaded / e.total) * 100));
-    xhr.onload = () => (xhr.status < 300 ? resolve(JSON.parse(xhr.responseText)) : reject(new Error(xhr.responseText)));
+    xhr.onload = () => {
+      if (xhr.status < 300) return resolve(JSON.parse(xhr.responseText));
+      let detail = `Upload failed (${xhr.status})`;
+      try {
+        detail = JSON.parse(xhr.responseText).detail ?? detail;
+      } catch {}
+      reject(new Error(detail));
+    };
     xhr.onerror = () => reject(new Error("Upload failed"));
     const form = new FormData();
     form.append("video", file);

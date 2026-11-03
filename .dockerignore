@@ -1,0 +1,12 @@
+# Only the API and the demo room go into the image.
+*
+!backend/pyproject.toml
+!backend/uv.lock
+!backend/app
+!backend/catalog
+!data/rooms/IMG_1184
+!deploy/start.sh
+data/rooms/IMG_1184/video.mp4
+data/rooms/IMG_1184/sam_tracks.pkl
+data/rooms/IMG_1184/renders
+**/__pycache__

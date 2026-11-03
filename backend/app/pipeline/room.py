@@ -28,7 +28,7 @@ from typing import Any
 import numpy as np
 from PIL import Image
 
-from app.config import DATA_DIR
+from app.config import DATA_DIR, MAX_VIDEO_S
 from app.pipeline import preview, sam, video
 from app.pipeline.concepts import CONCEPTS
 
@@ -161,7 +161,7 @@ async def analyze_room(
 
     clip = out / "video.mp4"
     if not (reuse_sam and clip.exists()):
-        video.normalize(src, clip, fps=FPS, height=720)
+        video.normalize(src, clip, fps=FPS, height=720, max_s=MAX_VIDEO_S)
     all_frames = out / "all_frames"
     frames = video.extract_frames(clip, all_frames)
     picks = video.pick_keyframes(frames, k=k)

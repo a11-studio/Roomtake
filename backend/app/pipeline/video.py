@@ -7,16 +7,17 @@ import numpy as np
 from PIL import Image
 
 
-def normalize(src: Path, dst: Path, fps: int = 15, height: int = 720) -> Path:
+def normalize(src: Path, dst: Path, fps: int = 15, height: int = 720, max_s: float | None = None) -> Path:
     """Re-encode to a small H.264 MP4 (no audio, faststart) that SAM accepts.
 
     Lower fps/resolution keeps SAM cost and latency down; furniture does not
-    move, so 15 fps is plenty for tracking.
+    move, so 15 fps is plenty for tracking. max_s keeps only the first seconds.
     """
     dst.parent.mkdir(parents=True, exist_ok=True)
     subprocess.run(
         [
             "ffmpeg", "-v", "error", "-y", "-i", str(src),
+            *(["-t", str(max_s)] if max_s else []),
             "-map", "0:v:0", "-an",
             "-vf", f"fps={fps},scale=-2:{height}",
             "-c:v", "libx264", "-preset", "veryfast", "-crf", "23",
