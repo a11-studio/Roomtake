@@ -18,7 +18,7 @@ SOURCE_CATEGORIES = ("furniture", "home-decoration")
 TITLE_TO_CATEGORY = [
     ("sofa", "sofa"), ("bed", "bed"), ("bedside table", "side table"),
     ("table lamp", "lamp"), ("lamp", "lamp"), ("chair", "chair"),
-    ("photo frame", "picture frame"), ("plant", "potted plant"),
+    ("photo frame", "painting"), ("plant", "potted plant"),
     ("mirror", "mirror"), ("swing", "decor"),
 ]
 

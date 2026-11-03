@@ -20,7 +20,8 @@ const KEY_CATEGORIES = [
   "curtain",
   "cushion",
   "outdoor furniture",
-  "picture frame",
+  "painting",
+  "mirror",
   "vase",
 ];
 const TARGET = 4;

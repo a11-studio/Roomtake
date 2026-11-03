@@ -18,12 +18,13 @@ import re
 from pathlib import Path
 
 from app.catalog import get_product, search_products
+from app.catalog.models import PIECE_TO_CATEGORY
 from app.config import ARCHITECT_MODEL, HELPER_MODEL
 from app.meta_client import async_client
 from app.render.restyle import LAYOUT, pieces_in_view
 
 KEEPABLE = ("furniture", "decor")
-ADD_ONS = ["lamp", "potted plant", "picture frame", "vase", "cushion"]
+ADD_ONS = ["lamp", "potted plant", "painting", "mirror", "vase", "cushion"]
 ZONE_PIECES = ["outdoor furniture", "potted plant", "rug", "lamp"]
 MAX_MAIN, MAX_ZONE, PER_CATEGORY = 5, 3, 5
 # Wonder usually writes the brief in 20-45 s but has taken 113 s (Nov 2);
@@ -86,8 +87,13 @@ def shortlist(room_dir: Path, room: dict, style: str | None, budget: float | Non
     lines = []
     for view, cats in groups.items():
         lines.append(f"[view: {view}]")
-        for cat in dict.fromkeys(cats):
-            hits = search_products(cat, max_price=budget)
+        # one list per catalog category, under the room's own name for the piece
+        # (a "picture frame" on the wall gets the paintings; the add-on is skipped)
+        by_category = {}
+        for cat in cats:
+            by_category.setdefault(PIECE_TO_CATEGORY.get(cat, cat), cat)
+        for category, cat in by_category.items():
+            hits = search_products(category, max_price=budget)
             hits.sort(key=lambda p: (not (style and p.style and style.lower() in p.style.lower()), p.price_eur))
             for p in hits[:PER_CATEGORY]:
                 size = f"{p.width_cm:.0f}x{p.depth_cm or 0:.0f}x{p.height_cm or 0:.0f} cm" if p.width_cm else "size n/a"

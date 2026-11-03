@@ -113,7 +113,7 @@ async def _classify(name: str, color: str, material: str, image_url: str) -> dic
         img = (await http.get(image_url + ("&" if "?" in image_url else "?") + "width=600")).content
     text = f"""This is a product from a furniture shop: "{name}" (colour: {color}, material: {material}).
 Reply with JSON only:
-{{"category": one of {CATEGORIES},
+{{"category": one of {CATEGORIES} ("painting" for any wall art: framed prints, posters, canvases),
   "name_en": short English product title (3-6 words, keep the model name),
   "color": colour in English, "material": material in English,
   "styles": the 1-3 best fitting of {STYLES}}}"""

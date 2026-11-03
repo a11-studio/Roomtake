@@ -2,13 +2,15 @@ from dataclasses import asdict, dataclass, fields
 
 # Our category vocabulary. Matches the SAM concepts (concepts.py) so the
 # architect can go from "replace rug_1" to search_products("rug"), plus a few
-# things you buy but SAM does not look for.
+# things you buy but SAM does not look for. One exception: SAM finds a
+# "picture frame" on the wall, the shop sells a "painting" (PIECE_TO_CATEGORY).
 CATEGORIES = [
     "sofa", "armchair", "chair", "coffee table", "side table", "dining table",
     "tv stand", "shelving unit", "wardrobe", "bed", "lamp", "rug", "cushion",
-    "curtain", "potted plant", "vase", "picture frame", "mirror",
+    "curtain", "potted plant", "vase", "painting", "mirror",
     "outdoor furniture", "decor",
 ]
+PIECE_TO_CATEGORY = {"picture frame": "painting"}
 
 STYLES = ["Scandinavian", "Japandi", "Art Deco", "Mid-Century", "Mediterranean"]
 
