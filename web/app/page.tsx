@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { HowItWorks } from "@/components/HowItWorks";
-import { Camera, Close, Couch, Plus } from "@/components/Icons";
+import { Camera, Close, Couch, MetaMark, Plus } from "@/components/Icons";
 import { uploadPhotos } from "@/lib/api";
 
 const DEMO_ROOM = "IMG_1184";
@@ -141,9 +141,14 @@ export default function Home() {
             Try our demo living room
           </Link>
           {error && <p className="text-center text-sm text-warn">{error}</p>}
+          <p className="flex items-center justify-center gap-1.5 pt-3 text-xs text-muted">
+            Powered by
+            <MetaMark className="text-[13px] text-ink" />
+            Meta AI models
+          </p>
           {/* the catalog editor is local only (app/curate/layout.tsx) */}
           {process.env.NODE_ENV === "development" && (
-            <Link href="/curate" className="block pt-3 text-center text-xs text-muted underline-offset-4 hover:underline">
+            <Link href="/curate" className="block pt-1 text-center text-xs text-muted underline-offset-4 hover:underline">
               Product catalog
             </Link>
           )}
