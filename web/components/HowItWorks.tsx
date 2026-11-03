@@ -264,7 +264,9 @@ export function HowItWorks() {
                 <span key={i === step ? tick : "rest"} style={{ animationDuration: `${SCENE_MS[i]}ms` }} />
               </span>
               <span className="how-tab__title">
-                <span className="how-tab__num">{i + 1}</span>
+                <span className="how-tab__num">
+                  <span className="trim">{i + 1}</span>
+                </span>
                 {st.title}
               </span>
             </button>
