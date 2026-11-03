@@ -58,7 +58,7 @@ export default function Home() {
             <br />
             Better take.
           </h1>
-          <p className="mt-3 text-[16px] leading-[1.45] text-balance text-muted lg:mt-8 lg:max-w-[30ch] lg:text-xl lg:leading-relaxed">
+          <p className="mt-3 text-[16px] leading-[1.45] text-balance text-muted lg:mt-8 lg:max-w-[46ch] lg:text-xl lg:leading-relaxed">
             Your own room, redesigned around how you live in it, with pieces you can actually buy.
           </p>
         </section>
