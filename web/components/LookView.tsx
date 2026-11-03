@@ -176,7 +176,11 @@ export function LookView({
             {look.brief.palette && (
               <ul className="pop-in mt-4 flex flex-wrap gap-1.5">
                 {[...new Set(look.brief.palette)].slice(0, 5).map((p) => (
-                  <li key={p} className="inline-flex h-7 items-center rounded-full bg-veil px-3 text-xs">
+                  // read-only: outlined and quiet, unlike the beige chips you can tap
+                  <li
+                    key={p}
+                    className="inline-flex h-7 items-center rounded-full bg-card px-3 text-xs text-umber ring-1 ring-inset ring-veil"
+                  >
                     <span className="trim">{p}</span>
                   </li>
                 ))}

@@ -12,6 +12,7 @@
   --paper: #ffffff; /* page background */
   --card: #ffffff;
   --veil: #e0d6cc; /* beige: chips, badges, secondary buttons, placeholders */
+  --umber: #7a6552; /* warm brown text on read-only tags (~5.7:1 on white) */
   --ink: #18211f;
   --muted: #44545a; /* secondary text: ~4.5:1 on paper, ~7:1 on white */
   --line: rgb(24 33 31 / 0.08);
@@ -26,6 +27,7 @@
   --color-paper: var(--paper);
   --color-card: var(--card);
   --color-veil: var(--veil);
+  --color-umber: var(--umber);
   --color-ink: var(--ink);
   --color-muted: var(--muted);
   --color-line: var(--line);
@@ -94,7 +96,10 @@ html:has(.home) body {
   opacity: 0;
   transition: grid-template-rows 0.5s var(--ease-travel), opacity 0.2s ease;
 }
-.fold > * { min-height: 0; overflow: hidden; }
+/* The child clips while the fold opens; padding pulled back by negative
+   margins gives card shadows and input rings room at the edges, so they are
+   not cut off (the layout does not move). */
+.fold > * { min-height: 0; overflow: hidden; padding: 0 16px 24px; margin: 0 -16px -24px; }
 .fold[data-open="true"] {
   grid-template-rows: 1fr;
   opacity: 1;
