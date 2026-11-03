@@ -24,7 +24,9 @@ from app.meta_client import async_client
 from app.render.restyle import LAYOUT, pieces_in_view
 
 KEEPABLE = ("furniture", "decor")
-ADD_ONS = ["lamp", "potted plant", "painting", "mirror", "vase", "cushion"]
+# Always on the shortlist for the main view, whatever SAM found: curtains and a
+# rug finish even a basic room (DRESSING_RULES), the rest are small wins.
+ADD_ONS = ["curtain", "rug", "lamp", "potted plant", "painting", "mirror", "vase", "cushion"]
 ZONE_PIECES = ["outdoor furniture", "potted plant", "rug", "lamp"]
 MAX_MAIN, MAX_ZONE, PER_CATEGORY = 5, 3, 5
 # Wonder usually writes the brief in 20-45 s but has taken 113 s (Nov 2);
@@ -49,6 +51,18 @@ truly fits the style and the room - otherwise describe the piece in "pieces"/"zo
 freely. Using a real product is a bonus, never a must. At most {MAX_MAIN} in the main view and
 {MAX_ZONE} per zone; "for" is the piece it becomes (e.g. "sofa") or "add" for a new item (say where
 in "note"); the total price must stay within the budget. Never replace a kept item."""
+
+
+# Martin, Nov 3, after a bare kindergarten room came back barely changed: windows
+# and floors are what make a room look finished, so the stylist always dresses them.
+DRESSING_RULES = """Dressing rules (they make even a basic room look finished):
+- Windows: if the main photo shows a window, dress it with curtains in the style (soft, long
+  fabric), even when it only has blinds now. Prefer a curtain from the shortlist: "for": "curtain"
+  if the room already has curtains, otherwise "for": "add" with the note "curtains on the window".
+- Floor: if the room has a rug, or a carpet or bare floor where one belongs, give it a better rug
+  from the shortlist: "for": "rug" if a rug was detected, otherwise "for": "add" with the note
+  saying where it lies (e.g. "rug on the carpet in front of the desk"). A wall-to-wall carpet stays;
+  the new rug lies on top of it."""
 
 
 def _image(path: Path) -> dict:
@@ -151,6 +165,8 @@ Detected objects:
 {_inventory(room)}
 
 {PRODUCT_RULES}
+
+{DRESSING_RULES}
 
 Shortlist (id | piece | name | colour, material | W x D x H | price | styles):
 {shortlist(room_dir, room, prefs.get('style'), budget)}

@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { HowItWorks } from "@/components/HowItWorks";
-import { Close, Plus } from "@/components/Icons";
+import { Camera, Close, Couch, Plus } from "@/components/Icons";
 import { uploadPhotos } from "@/lib/api";
 
 const DEMO_ROOM = "IMG_1184";
@@ -124,7 +124,8 @@ export default function Home() {
                 style={{ width: `${progress}%` }}
               />
             )}
-            <span className="relative">
+            <span className="relative inline-flex items-center justify-center gap-2">
+              {progress === null && photos.length === 0 && <Camera className="text-[19px]" />}
               {progress !== null
                 ? `Uploading… ${progress}%`
                 : photos.length
@@ -134,14 +135,18 @@ export default function Home() {
           </button>
           <Link
             href={`/room/${DEMO_ROOM}`}
-            className="block w-full rounded-full bg-card py-4 hover:bg-[#fbf9f7] text-center text-base font-medium shadow-[var(--shadow-card)] transition active:scale-[0.99]"
+            className="flex w-full items-center justify-center gap-2 rounded-full bg-card py-4 hover:bg-[#fbf9f7] text-base font-medium shadow-[var(--shadow-card)] transition active:scale-[0.99]"
           >
+            <Couch className="text-[19px]" />
             Try our demo living room
           </Link>
           {error && <p className="text-center text-sm text-warn">{error}</p>}
-          <Link href="/curate" className="block pt-3 text-center text-xs text-muted underline-offset-4 hover:underline">
-            Product catalog
-          </Link>
+          {/* the catalog editor is local only (app/curate/layout.tsx) */}
+          {process.env.NODE_ENV === "development" && (
+            <Link href="/curate" className="block pt-3 text-center text-xs text-muted underline-offset-4 hover:underline">
+              Product catalog
+            </Link>
+          )}
         </div>
       </div>
     </div>

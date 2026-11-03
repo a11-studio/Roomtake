@@ -4,7 +4,9 @@
 import {
   ArrowUp as PhArrowUp,
   ArrowsLeftRight as PhArrowsLeftRight,
+  Camera as PhCamera,
   Check as PhCheck,
+  Couch as PhCouch,
   Plus as PhPlus,
   Shuffle as PhShuffle,
   X as PhX,
@@ -27,3 +29,7 @@ export const ArrowUp = icon(PhArrowUp);
 export const ArrowsLeftRight = icon(PhArrowsLeftRight);
 export const Check = icon(PhCheck);
 export const Close = icon(PhX);
+/** "Snap your room". */
+export const Camera = icon(PhCamera);
+/** "Try our demo living room": a room that is ready to look at. */
+export const Couch = icon(PhCouch);
