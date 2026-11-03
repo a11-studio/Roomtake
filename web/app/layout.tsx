@@ -6,10 +6,29 @@ import "./globals.css";
 const FONT_CSS =
   "https://fonts.googleapis.com/css2?family=Google+Sans+Flex:opsz,wght@6..144,300..800&display=swap";
 
+const TITLE = "RoomTake: Same room. Better take.";
+const DESCRIPTION = "Snap your room. Get a real redesign with products you can buy.";
+
 export const metadata: Metadata = {
-  title: "Roomtake",
-  description: "Snap your room. Get a real redesign with products you can buy.",
-  icons: { icon: "/RoomTake-light.svg" },
+  // absolute URLs for the share card (og:image) need the site's address
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "https://roomtake-woad.vercel.app"),
+  title: TITLE,
+  description: DESCRIPTION,
+  icons: { icon: "/favicon.png", apple: "/favicon.png" },
+  openGraph: {
+    type: "website",
+    siteName: "RoomTake",
+    title: TITLE,
+    description: DESCRIPTION,
+    url: "/",
+    images: [{ url: "/og-image.png", width: 1200, height: 630, alt: "RoomTake" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: TITLE,
+    description: DESCRIPTION,
+    images: ["/og-image.png"],
+  },
 };
 
 export const viewport: Viewport = {
