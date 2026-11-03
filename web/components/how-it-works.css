@@ -14,6 +14,7 @@
     font-family: "Google Sans Flex", system-ui, sans-serif;
     --ss-text-strong: #18211f;
     --how-ink: #18211f;
+    --how-olive: #5e5939; /* the app's brand: what you tap */
     --how-muted: #5d6b71;
     --how-veil: #e0d6cc;
     --how-ease: cubic-bezier(0.45, 0, 0.1, 1);
@@ -226,7 +227,7 @@
     transform: scale(0.97);
   }
   .how-tile[data-on] {
-    background: var(--how-ink);
+    background: var(--how-olive);
     color: #fff;
   }
   .how-swatches {
@@ -240,7 +241,7 @@
     transition: box-shadow 0.25s ease;
   }
   .how-tile[data-on] .how-swatches > span {
-    box-shadow: 0 0 0 3px var(--how-ink);
+    box-shadow: 0 0 0 3px var(--how-olive);
   }
   .how-swatches > span + span {
     margin-left: -7px;
@@ -262,7 +263,7 @@
     align-items: center;
     justify-content: center;
     border-radius: 999px;
-    background: var(--how-ink);
+    background: var(--how-olive);
     color: #fff;
     font-size: 19px;
     font-weight: 500;
@@ -377,7 +378,7 @@
     align-items: center;
     padding: 0 20px;
     border-radius: 999px;
-    background: var(--how-ink);
+    background: var(--how-olive);
     color: #fff;
     font-size: 17px;
     font-weight: 500;
@@ -415,7 +416,7 @@
   height: 100%;
   width: 100%;
   border-radius: inherit;
-  background: var(--ink);
+  background: var(--olive);
   transform-origin: left;
   transform: scaleX(0);
 }

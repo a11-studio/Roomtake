@@ -127,7 +127,7 @@ function UsedProduct({ use, index }: { use: ProductUse; index: number }) {
         href={p.product_url}
         target="_blank"
         rel="noreferrer"
-        className="inline-flex h-9 shrink-0 items-center rounded-full bg-ink px-4 text-sm font-medium text-white transition-[background-color,transform] hover:bg-[#2c3734] active:scale-95"
+        className="inline-flex h-9 shrink-0 items-center rounded-full bg-olive px-4 text-sm font-medium text-white transition-[background-color,transform] hover:bg-olive-deep active:scale-95"
       >
         <span className="trim">Buy</span>
       </a>
@@ -286,7 +286,7 @@ export function LookView({
                   ))}
                 </div>
                 <form
-                  className="mt-4 flex items-center gap-2 rounded-full bg-card p-1.5 pl-2 ring-1 ring-line transition-shadow focus-within:ring-ink/25"
+                  className="mt-4 flex items-center gap-2 rounded-full bg-card p-1.5 pl-2 ring-1 ring-line transition-shadow focus-within:ring-olive/35"
                   onSubmit={(e) => {
                     e.preventDefault();
                     if (text.trim()) onRevise(text.trim());
@@ -304,7 +304,7 @@ export function LookView({
                   <button
                     disabled={busy || !text.trim()}
                     aria-label="Send"
-                    className="grid size-11 shrink-0 place-items-center rounded-full bg-ink text-[18px] text-white transition-[background-color,opacity,transform] hover:bg-[#2c3734] active:scale-95 disabled:opacity-30"
+                    className="grid size-11 shrink-0 place-items-center rounded-full bg-olive text-[18px] text-white transition-[background-color,opacity,transform] hover:bg-olive-deep active:scale-95 disabled:opacity-30"
                   >
                     <ArrowUp />
                   </button>

@@ -116,7 +116,7 @@ export function Preferences({
                     aria-pressed={on}
                     className={`rounded-[20px] p-3.5 text-left transition-[background-color,box-shadow,transform] duration-200 active:scale-[0.98] ${
                       on
-                        ? "bg-ink text-white shadow-[var(--shadow-float)]"
+                        ? "bg-olive text-white shadow-[var(--shadow-float)]"
                         : "bg-card shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-float)]"
                     }`}
                   >
@@ -124,7 +124,7 @@ export function Preferences({
                       {s.swatches.map((c, i) => (
                         <span
                           key={c}
-                          className={`size-6 rounded-full ring-2 ${on ? "ring-ink" : "ring-card"} ${i ? "-ml-1.5" : ""}`}
+                          className={`size-6 rounded-full ring-2 ${on ? "ring-olive" : "ring-card"} ${i ? "-ml-1.5" : ""}`}
                           style={{ background: c }}
                         />
                       ))}
@@ -169,7 +169,7 @@ export function Preferences({
                     aria-pressed={on}
                     className={`inline-flex h-9 items-center rounded-full pl-3.5 text-sm transition-[background-color,color,transform] duration-200 active:scale-95 ${
                       ids.length > 1 ? "pr-[9px]" : "pr-3.5"
-                    } ${on ? "bg-ink text-white hover:bg-[#2c3734]" : "bg-veil hover:bg-[#d6cabd]"}`}
+                    } ${on ? "bg-olive text-white hover:bg-olive-deep" : "bg-veil hover:bg-[#d6cabd]"}`}
                   >
                     <span
                       // the check and its gap open together, so the label never jumps
@@ -198,7 +198,7 @@ export function Preferences({
             <button
               onClick={() => onSubmit({ style, budget, keep })}
               disabled={busy}
-              className="flex h-14 w-full items-center justify-center gap-2 rounded-full bg-ink text-base font-medium text-white shadow-[var(--shadow-float)] transition-[background-color,transform] hover:bg-[#2c3734] active:scale-[0.99] disabled:opacity-80"
+              className="flex h-14 w-full items-center justify-center gap-2 rounded-full bg-olive text-base font-medium text-white shadow-[var(--shadow-float)] transition-[background-color,transform] hover:bg-olive-deep active:scale-[0.99] disabled:opacity-80"
             >
               {busy ? (
                 "Starting…"

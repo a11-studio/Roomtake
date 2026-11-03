@@ -47,7 +47,7 @@ export function Analysis({ roomId, onDone }: { roomId: string; onDone: () => voi
 
       <div className="mt-8 h-1.5 overflow-hidden rounded-full bg-veil">
         <div
-          className="h-full rounded-full bg-ink transition-[width] duration-700"
+          className="h-full rounded-full bg-olive transition-[width] duration-700"
           style={{ width: `${pct}%`, transitionTimingFunction: "var(--ease-travel)" }}
         />
       </div>

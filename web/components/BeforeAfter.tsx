@@ -113,7 +113,7 @@ export function BeforeAfter({
         <span className="trim absolute top-3 left-3 rounded-full bg-white/85 px-2.5 py-1.5 text-[11px] font-medium text-ink backdrop-blur">
           Before
         </span>
-        <span className="trim absolute top-3 right-3 rounded-full bg-ink/80 px-2.5 py-1.5 text-[11px] font-medium text-white backdrop-blur">
+        <span className="trim absolute top-3 right-3 rounded-full bg-olive/80 px-2.5 py-1.5 text-[11px] font-medium text-white backdrop-blur">
           After
         </span>
       </div>

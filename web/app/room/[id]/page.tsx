@@ -74,7 +74,7 @@ export default function RoomPage({ params }: { params: Promise<{ id: string }> }
         {stage === "look" && (
           <button
             onClick={() => setStage("prefs")}
-            className="inline-flex h-9 items-center gap-1.5 rounded-full bg-ink pr-4 pl-3 text-sm font-medium text-white transition-[background-color,transform] hover:bg-[#2c3734] active:scale-95"
+            className="inline-flex h-9 items-center gap-1.5 rounded-full bg-olive pr-4 pl-3 text-sm font-medium text-white transition-[background-color,transform] hover:bg-olive-deep active:scale-95"
           >
             <Plus className="text-[15px]" />
             <span className="trim">New style</span>

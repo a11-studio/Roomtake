@@ -13,7 +13,9 @@
   --card: #ffffff;
   --veil: #e0d6cc; /* beige: chips, badges, secondary buttons, placeholders */
   --umber: #7a6552; /* warm brown text on read-only tags (~5.7:1 on white) */
-  --ink: #18211f;
+  --ink: #18211f; /* text */
+  --olive: #5e5939; /* brand: everything you tap (buttons, picks, fills); white on it ~7:1 */
+  --olive-deep: #4c482e; /* its hover */
   --muted: #44545a; /* secondary text: ~4.5:1 on paper, ~7:1 on white */
   --line: rgb(24 33 31 / 0.08);
   --ok: #2f6b4b;
@@ -29,6 +31,8 @@
   --color-veil: var(--veil);
   --color-umber: var(--umber);
   --color-ink: var(--ink);
+  --color-olive: var(--olive);
+  --color-olive-deep: var(--olive-deep);
   --color-muted: var(--muted);
   --color-line: var(--line);
   --color-ok: var(--ok);
@@ -144,12 +148,12 @@ html:has(.bleed) body {
 }
 .breathe { animation: breathe 1.4s ease-in-out infinite; }
 
-/* Range input: ink thumb on a soft track */
+/* Range input: olive thumb on a soft track */
 input[type="range"].range {
   appearance: none;
   height: 4px;
   border-radius: 999px;
-  background: linear-gradient(var(--ink), var(--ink)) 0 / var(--fill, 0%) 100% no-repeat, var(--line);
+  background: linear-gradient(var(--olive), var(--olive)) 0 / var(--fill, 0%) 100% no-repeat, var(--line);
 }
 input[type="range"].range::-webkit-slider-thumb {
   appearance: none;
@@ -157,7 +161,7 @@ input[type="range"].range::-webkit-slider-thumb {
   height: 22px;
   border-radius: 999px;
   background: var(--card);
-  border: 2px solid var(--ink);
+  border: 2px solid var(--olive);
   box-shadow: var(--shadow-card);
 }
 input[type="range"].range::-moz-range-thumb {
@@ -165,7 +169,7 @@ input[type="range"].range::-moz-range-thumb {
   height: 18px;
   border-radius: 999px;
   background: var(--card);
-  border: 2px solid var(--ink);
+  border: 2px solid var(--olive);
 }
 
 /* "Thinking" text: a soft light runs through the letters, like a model at work */

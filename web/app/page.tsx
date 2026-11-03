@@ -87,7 +87,7 @@ export default function Home() {
                       <button
                         onClick={() => setPhotos(photos.filter((_, j) => j !== i))}
                         aria-label={`Remove photo ${i + 1}`}
-                        className="absolute -top-1.5 -right-1.5 grid size-6 place-items-center rounded-full bg-ink text-[11px] text-white ring-2 ring-card"
+                        className="absolute -top-1.5 -right-1.5 grid size-6 place-items-center rounded-full bg-olive text-[11px] text-white ring-2 ring-card"
                       >
                         <Close />
                       </button>
@@ -116,7 +116,7 @@ export default function Home() {
           <button
             onClick={() => (photos.length ? start() : input.current?.click())}
             disabled={progress !== null}
-            className="relative w-full overflow-hidden rounded-full bg-ink py-4 hover:bg-[#2c3734] text-base font-medium text-white transition active:scale-[0.99] disabled:opacity-90"
+            className="relative w-full overflow-hidden rounded-full bg-olive py-4 hover:bg-olive-deep text-base font-medium text-white transition active:scale-[0.99] disabled:opacity-90"
           >
             {progress !== null && (
               <span
