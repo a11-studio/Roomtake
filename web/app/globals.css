@@ -66,6 +66,15 @@ html:has(.home) body {
   }
 }
 
+/* A band that runs the full width of the screen from inside the page column;
+   the body clips the scrollbar's few pixels instead of scrolling sideways. */
+.bleed {
+  margin-inline: calc(50% - 50vw);
+}
+html:has(.bleed) body {
+  overflow-x: clip;
+}
+
 ::selection {
   background: var(--ink);
   color: var(--card);

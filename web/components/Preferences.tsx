@@ -50,52 +50,55 @@ export function Preferences({
   const fill = ((budget - BUDGET.min) / (BUDGET.max - BUDGET.min)) * 100;
 
   return (
-    <div className="pt-6 lg:pt-10">
-      <section aria-label="Your room" className="rounded-[28px] bg-[#f7f4f1] py-5 lg:py-7">
-        <div className="flex items-baseline justify-between px-5 lg:px-7">
-          <p className="eyebrow">Your room</p>
-          <p className="text-xs text-muted">
-            {room.views.length} {room.views.length === 1 ? "photo" : "photos"}
-          </p>
+    <div className="pt-6">
+      {/* full-width beige band: everything about the room as it is */}
+      <section aria-label="Your room" className="bleed bg-veil pt-7 pb-9 lg:pt-10 lg:pb-12">
+        <div className="mx-auto max-w-md px-5 md:max-w-3xl md:px-8 lg:max-w-6xl lg:px-10">
+          <div className="flex items-baseline justify-between">
+            <p className="eyebrow">Your room</p>
+            <p className="text-xs text-muted">
+              {room.views.length} {room.views.length === 1 ? "photo" : "photos"}
+            </p>
+          </div>
+          <div className="-mx-5 mt-4 flex snap-x scroll-px-5 gap-3 overflow-x-auto px-5 [scrollbar-width:none] md:-mx-8 md:scroll-px-8 md:px-8 lg:mx-0 lg:scroll-px-0 lg:px-0">
+            {room.keyframes.map((k) => (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                key={k.file}
+                src={fileUrl(roomId, k.file)}
+                alt=""
+                className="h-44 w-auto max-w-none shrink-0 snap-start rounded-2xl object-cover lg:h-52"
+              />
+            ))}
+          </div>
+          <h1 className="mt-7 text-[28px] font-semibold tracking-tight lg:text-[36px]">
+            We found {counts.reduce((sum, [, n]) => sum + n, 0)} things
+          </h1>
+          <ul className="mt-4 flex flex-wrap gap-1.5">
+            {counts.map(([label, n], i) => (
+              // read-only: white and quiet, unlike the beige chips you can tap
+              <li
+                key={label}
+                className={`pop-in inline-flex h-7 items-center gap-1.5 rounded-full bg-card pl-3 text-[13px] text-umber ${
+                  n > 1 ? "pr-[5px]" : "pr-3"
+                }`}
+                style={{ animationDelay: `${i * 40}ms` }}
+              >
+                <span className="trim">{label}</span>
+                {n > 1 && <Count n={n} quiet />}
+              </li>
+            ))}
+            {freeZone && (
+              <li className="pop-in inline-flex h-7 items-center gap-1.5 rounded-full border border-dashed border-[#a8957f] px-3 text-[13px] text-umber">
+                <Plus className="text-[12px]" />
+                <span className="trim">empty {freeZone.label.replace(" floor", "")} to furnish</span>
+              </li>
+            )}
+          </ul>
         </div>
-        <div className="mt-3 flex snap-x gap-3 overflow-x-auto px-5 [scrollbar-width:none] lg:px-7">
-          {room.keyframes.map((k) => (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              key={k.file}
-              src={fileUrl(roomId, k.file)}
-              alt=""
-              className="h-40 w-auto max-w-none shrink-0 snap-start rounded-2xl object-cover lg:h-48"
-            />
-          ))}
-        </div>
-        <h1 className="mt-5 px-5 text-[24px] font-semibold tracking-tight lg:px-7 lg:text-[28px]">
-          We found {counts.reduce((sum, [, n]) => sum + n, 0)} things
-        </h1>
-        <ul className="mt-3 flex flex-wrap gap-1.5 px-5 lg:px-7">
-          {counts.map(([label, n], i) => (
-            // read-only: outlined and quiet, unlike the beige chips you can tap
-            <li
-              key={label}
-              className={`pop-in inline-flex h-7 items-center gap-1.5 rounded-full bg-card pl-3 text-[13px] text-umber ring-1 ring-inset ring-veil ${
-                n > 1 ? "pr-[5px]" : "pr-3"
-              }`}
-              style={{ animationDelay: `${i * 40}ms` }}
-            >
-              <span className="trim">{label}</span>
-              {n > 1 && <Count n={n} quiet />}
-            </li>
-          ))}
-          {freeZone && (
-            <li className="pop-in inline-flex h-7 items-center gap-1.5 rounded-full border border-dashed border-[#c9b9a7] px-3 text-[13px] text-umber">
-              <Plus className="text-[12px]" />
-              <span className="trim">empty {freeZone.label.replace(" floor", "")} to furnish</span>
-            </li>
-          )}
-        </ul>
       </section>
 
-      <div className="mt-12 lg:mt-14">
+      <div className="mt-10 lg:mt-14">
         <p className="eyebrow">Your new look</p>
         <h2 className="mt-2 text-[28px] font-semibold tracking-tight lg:text-[36px]">Pick a style</h2>
       </div>
