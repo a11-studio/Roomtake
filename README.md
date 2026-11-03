@@ -4,7 +4,7 @@ Same room. Better take.
 
 Meta Global AI Developer Hackathon · Startup track · "Build for Your World"
 
-**Live:** https://roomtake-woad.vercel.app (open it on a phone; "Try our demo living room"
+**Live:** https://roomtake-meta.vercel.app (open it on a phone; "Try our demo living room"
 shows a room that is already analyzed) · API: https://roomtake-api.fly.dev
 
 Snap 1–3 photos of your room → SAM 3.1 finds what's in them → an AI stylist restyles the

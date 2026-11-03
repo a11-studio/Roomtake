@@ -11,7 +11,7 @@ const DESCRIPTION = "Snap your room. Get a real redesign with products you can b
 
 export const metadata: Metadata = {
   // absolute URLs for the share card (og:image) need the site's address
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "https://roomtake-woad.vercel.app"),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "https://roomtake-meta.vercel.app"),
   title: TITLE,
   description: DESCRIPTION,
   icons: { icon: "/favicon.png", apple: "/favicon.png" },
