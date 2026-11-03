@@ -7,8 +7,10 @@ import {
   Camera as PhCamera,
   Check as PhCheck,
   Couch as PhCouch,
+  Microphone as PhMicrophone,
   Plus as PhPlus,
   Shuffle as PhShuffle,
+  Stop as PhStop,
   X as PhX,
 } from "@phosphor-icons/react";
 import type { ComponentType } from "react";
@@ -33,3 +35,6 @@ export const Close = icon(PhX);
 export const Camera = icon(PhCamera);
 /** "Try our demo living room": a room that is ready to look at. */
 export const Couch = icon(PhCouch);
+/** Talk to the stylist (Muse Voice Transcribe), and stop talking. */
+export const Microphone = icon(PhMicrophone);
+export const Stop = icon(PhStop);

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { BeforeAfter } from "@/components/BeforeAfter";
+import { MicButton, useDictation } from "@/components/Dictation";
 import { ArrowUp } from "@/components/Icons";
 import { Orb } from "@/components/Orb";
 import { fileUrl, getLook, thumb, type Look, type ProductUse, type Room } from "@/lib/api";
@@ -152,6 +153,8 @@ export function LookView({
   const parentViews = useParentViews(roomId, look?.parent);
   const [text, setText] = useState("");
   const [more, setMore] = useState(false);
+  // what you say lands in the field (after anything typed), to check before sending
+  const dictation = useDictation((said) => setText((t) => (t.trim() ? `${t.trim()} ${said}` : said)));
 
   if (!look) {
     return (
@@ -293,22 +296,30 @@ export function LookView({
                     setText("");
                   }}
                 >
-                  <Orb className="size-9" active={busy || !!text.trim()} />
+                  <Orb className="size-9" active={busy || !!text.trim() || dictation.state !== "idle"} />
                   <input
                     value={text}
                     onChange={(e) => setText(e.target.value)}
-                    disabled={busy}
-                    placeholder="Tell the stylist what to change"
+                    disabled={busy || dictation.state !== "idle"}
+                    placeholder={
+                      dictation.state === "recording"
+                        ? `Listening… 0:${String(dictation.seconds).padStart(2, "0")}`
+                        : dictation.state === "transcribing"
+                          ? "Writing it down…"
+                          : "Say or type a change"
+                    }
                     className="min-w-0 flex-1 rounded-2xl bg-transparent px-1.5 py-3 text-[16px] outline-none placeholder:text-muted/70"
                   />
+                  <MicButton state={dictation.state} disabled={busy} onClick={dictation.toggle} />
                   <button
-                    disabled={busy || !text.trim()}
+                    disabled={busy || !text.trim() || dictation.state !== "idle"}
                     aria-label="Send"
                     className="grid size-11 shrink-0 place-items-center rounded-full bg-olive text-[18px] text-white transition-[background-color,opacity,transform] hover:bg-olive-deep active:scale-95 disabled:opacity-30"
                   >
                     <ArrowUp />
                   </button>
                 </form>
+                {dictation.error && <p className="mt-2 px-4 text-xs text-warn">{dictation.error}</p>}
               </section>
             </>
           )}

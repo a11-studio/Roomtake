@@ -172,6 +172,13 @@ input[type="range"].range::-moz-range-thumb {
   border: 2px solid var(--olive);
 }
 
+/* The mic while listening: a soft ring breathing out from the button */
+@keyframes mic-pulse {
+  from { box-shadow: 0 0 0 0 rgb(94 89 57 / 0.45); }
+  to { box-shadow: 0 0 0 12px rgb(94 89 57 / 0); }
+}
+.mic-pulse { animation: mic-pulse 1.2s var(--ease-arrive) infinite; }
+
 /* "Thinking" text: a soft light runs through the letters, like a model at work */
 @keyframes thinking {
   from { background-position: 100% 0; }
@@ -187,6 +194,7 @@ input[type="range"].range::-moz-range-thumb {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .mic-pulse { animation: none; }
   .pop-in, .page-in, .shimmer::after, .breathe { animation: none; }
   .fold, .fold[data-open="true"] { transition: none; }
   .thinking { animation: none; color: var(--ink); background: none; }

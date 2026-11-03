@@ -8,6 +8,7 @@ GET  /api/rooms/{id}                status (+ room.json when done)
 GET  /api/rooms/{id}/events         progress as server-sent events
 GET  /api/rooms/{id}/files/{path}   frames, masks, renders
 GET  /api/products                  catalog search
+POST /api/transcribe                speech to text for the stylist (Muse Voice Transcribe)
 POST /api/rooms/{id}/render         product into the room photo (Muse Image)
 """
 
@@ -35,6 +36,7 @@ from app.config import CURATE_ENABLED, DATA_DIR, MAX_ANALYSES, MAX_UPLOAD_MB, PU
 from app.pipeline.photos import MAX_PHOTOS, analyze_photos
 from app.pipeline.room import analyze_room
 from app.render.visualize import visualize
+from app.voice import transcribe
 
 ROOMS = DATA_DIR / "rooms"
 ROOMS.mkdir(parents=True, exist_ok=True)
@@ -374,3 +376,17 @@ async def render(room_id: str, req: RenderRequest) -> dict:
     except RuntimeError as e:
         raise HTTPException(502, str(e)) from e
     return {**result, "product": product.to_dict()}
+
+
+@app.post("/api/transcribe")
+async def transcribe_speech(audio: UploadFile) -> dict:
+    """What the user said to the stylist, as text (Muse Voice Transcribe, ~1-3 s)."""
+    data = await audio.read()
+    if not data or len(data) > 10 * 2**20:
+        raise HTTPException(413, "That recording is empty or too long.")
+    try:
+        return {"text": await transcribe(data)}
+    except ValueError as e:
+        raise HTTPException(400, str(e)) from e
+    except Exception as e:
+        raise HTTPException(502, f"{type(e).__name__}: {e}") from e

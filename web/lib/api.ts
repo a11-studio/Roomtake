@@ -156,3 +156,11 @@ export const importProduct = (url: string) => post<{ variants: Product[] }>(`${A
 export const saveProduct = (p: Product) => post<Product>(`${API}/api/catalog/products`, p);
 export const removeProduct = (id: string) =>
   fetch(`${API}/api/catalog/products/${encodeURIComponent(id)}`, { method: "DELETE" }).then((r) => json<unknown>(r));
+
+/** Speech to text for the stylist input (Muse Voice Transcribe on the server). */
+export async function transcribe(audio: Blob): Promise<string> {
+  const form = new FormData();
+  form.append("audio", audio, audio.type.includes("mp4") ? "speech.mp4" : "speech.webm");
+  const { text } = await json<{ text: string }>(await fetch(`${API}/api/transcribe`, { method: "POST", body: form }));
+  return text;
+}
