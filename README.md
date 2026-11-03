@@ -87,7 +87,7 @@ cd backend && uv sync
   never sleeps (analyses and looks finish in the background), a 10 GB volume at `/data`
   for rooms, and the demo room baked into the image and copied onto the volume on first
   boot (the SAM masks too: restyling reads them). Key: `fly secrets set MODEL_API_KEY=...`.
-- **Web → Vercel** (`web/`): `vercel deploy --prod` with `NEXT_PUBLIC_API_URL` set to the API.
+- **Web → Vercel** (project Root Directory `web`): every push to `main` deploys to production at https://roomtake-meta.vercel.app; `NEXT_PUBLIC_API_URL` points at the API.
 - `ROOMTAKE_PUBLIC=1` on the server turns off catalog editing and guards the credits:
   videos are trimmed to 60 s, uploads capped at 300 MB, at most 2 rooms analyzed at once.
 
