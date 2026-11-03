@@ -10,7 +10,7 @@ import "./how-it-works.css";
 //                    shutter, a flash; SAM's finds land on the photo
 // 2 Pick a style:    a tap on Japandi; the button takes the style's name; a tap
 // 3 See it, buy it:  the divider travels to the middle and uncovers the
-//                    restyled room; the real rug in it rises in with its price
+//                    restyled room; the real sofa in it rises in with its price
 //
 // Real strings: four object names, four style names, the button, the look's
 // title, the product and its price. The rest is image or shape.
@@ -26,7 +26,7 @@ type S = {
   picked: boolean; // Japandi tapped
   named: boolean; // the button says "Show my room in Japandi"
   reveal: number; // divider position, % from the left (100 = all before)
-  product: boolean; // the rug's card is in
+  product: boolean; // the sofa's card is in
 };
 
 export const STEPS = [
@@ -177,7 +177,7 @@ function See({ s }: { s: S }) {
   return (
     <div className="how-see">
       <div className="how-label">Your room, restyled</div>
-      <div className="how-title">Warm Japandi</div>
+      <div className="how-title">Japandi Calm</div>
       <div className="how-compare">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src="/demo/room-japandi.jpg" alt="" />
@@ -188,10 +188,10 @@ function See({ s }: { s: S }) {
       <Collapse open={s.product} reveal="drop">
         <div className="how-product">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/demo/rug.jpg" alt="" />
+          <img src="/demo/sofa.jpg" alt="" />
           <span className="how-product__text">
-            <span className="how-product__name">Denton wool rug</span>
-            <span className="how-product__price">€159</span>
+            <span className="how-product__name">Alba 2-seater sofa</span>
+            <span className="how-product__price">€799</span>
           </span>
           <span className="how-buy" data-target="buy">
             Buy

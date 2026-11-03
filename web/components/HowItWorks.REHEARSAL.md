@@ -13,7 +13,7 @@ phone, played as a carousel with step tabs below the stage:
 2. Pick a style: a tap on Japandi (tile goes ink), the button's label changes
    in its own slot (`States`), a tap on the button.
 3. See it, buy it: the divider travels from the right edge to the middle and
-   uncovers the restyled room (look 4c3e4a22), then the Denton rug's card
+   uncovers the restyled room (look 2f76a5db, Japandi Calm), then the Alba sofa's card
    drops in (`Collapse reveal="drop"`) and its Buy is tapped. Holds ~2 s.
 
 Screens swap like one app: the body crossfades with an 8 pt rise; the phone
