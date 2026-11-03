@@ -70,7 +70,8 @@ def _html_product(html: str, url: str) -> dict | None:
         return m and m.group(1)
 
     name, image = meta("og:title"), meta("og:image:secure_url") or meta("og:image")
-    price = re.search(r'data-testid="product-price">([^<]+)<', html)
+    # the current price: "product-price", or "product-sale-price" next to a struck-out one
+    price = re.search(r'data-testid="product-(?:sale-)?price">([^<]+)<', html)
     if not (name and image and price):
         return None
     # "2 299 €", "2.299,00 €", "1,299.00 €": drop thousands separators, keep the decimal
