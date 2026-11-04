@@ -2,7 +2,7 @@
 
 Same room. Better take.
 
-Meta Global AI Developer Hackathon · Startup track · "Build for Your World"
+Meta Global AI Developer Hackathon · Indie Developer track · "Build for Your World"
 
 **Live:** https://roomtake-meta.vercel.app (works best on a phone; "Try our demo" opens a
 home that is already analyzed and restyled: living room, bedroom and balcony) ·
