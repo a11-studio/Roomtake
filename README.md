@@ -4,15 +4,44 @@ Same room. Better take.
 
 Meta Global AI Developer Hackathon · Startup track · "Build for Your World"
 
-**Live:** https://roomtake-meta.vercel.app (open it on a phone; "Try our demo living room"
-shows a room that is already analyzed) · API: https://roomtake-api.fly.dev
+**Live:** https://roomtake-meta.vercel.app (works best on a phone; "Try our demo" opens a
+home that is already analyzed and restyled: living room, bedroom and balcony) ·
+API: https://roomtake-api.fly.dev · **Demo video (2 min):** https://www.youtube.com/watch?v=fkr5vOcODik
 
 Snap 1–3 photos of your room → SAM 3.1 finds what's in them → an AI stylist restyles the
 whole room in the style you pick, with real products → painted into **your actual photo**,
-the layout stays.
+the layout stays. Every piece in the picture is a real product with a price and a link,
+so the look is something you can actually buy.
 
-Runtime AI is **Meta models only**: SAM 3.1, Muse Wonder, Muse Spark, Muse Image
-(optionally Muse Voice Transcribe), via the [Meta Model API](https://dev.meta.ai/docs/).
+Runtime AI is **Meta models only**, via the [Meta Model API](https://dev.meta.ai/docs/):
+
+| Model | What it does in Roomtake |
+|---|---|
+| **SAM 3.1** | Finds 24 kinds of things in your photos (sofa, bed, rug, floor, balcony…) and returns their masks. The masks become a colour layout map that keeps every piece in its place when the room is restyled, and SAM runs again on the result to check that it did (IoU per piece). |
+| **Muse Wonder 1.0** | The stylist. Sees your photos and the inventory, picks real products from a catalog shortlist that fit the style and budget, and writes the style brief. |
+| **Muse Image 1.0** | Repaints your actual photo in the new style, with the layout map and the chosen product photos as references. Pieces you want to keep are pasted back pixel-exact. |
+| **Muse Spark 1.3** | The quick hands: revisions ("warmer", "keep my sofa", "Japandi instead"), a fallback when Wonder is slow, and classifying every catalog product from its photo. |
+| **Muse Voice Transcribe 1.0** | Talk to the stylist: what you say is written into the revision field. |
+
+## Built during the hackathon
+
+Everything in this repository was written during the hackathon, from the first commit on
+2 Nov 2026 to the submission on 4 Nov (see `git log`). Nothing comes from an earlier
+codebase. What was built:
+
+- **Room analysis** with SAM 3.1: first full-video tracking, then 1–3 photos in ~20 s.
+- **Layout-keeping restyle**: the SAM layout map raised how well pieces keep their place
+  and size from a mean IoU of 0.39 (text only) to 0.55 (`spikes/t4_restyle.py`).
+- **Products-first stylist**: Muse Wonder picks real products, Muse Image draws them into
+  your room, Muse Spark revises. 153 hand-picked Westwing products, classified by Spark.
+- **Five styles** (Scandinavian, Japandi, Art Deco, Mid-Century, Mediterranean) plus a
+  **Christmas** season that keeps your furniture and dresses the room for the holidays,
+  with a lit tree placed in a free spot.
+- **Voice revisions** with Muse Voice Transcribe.
+- **The mobile web app** (Next.js): upload, live analysis, style picker, before/after,
+  shop the look, an animated "how it works" demo and a 3D logo.
+- **Public deploy** on Fly.io and Vercel, with per-visitor daily limits.
+- **Go/no-go spikes** T1–T4 that decided the architecture (`spikes/`).
 
 ## Pipeline
 
@@ -89,7 +118,8 @@ cd backend && uv sync
   boot (the SAM masks too: restyling reads them). Key: `fly secrets set MODEL_API_KEY=...`.
 - **Web → Vercel** (project Root Directory `web`): every push to `main` deploys to production at https://roomtake-meta.vercel.app; `NEXT_PUBLIC_API_URL` points at the API.
 - `ROOMTAKE_PUBLIC=1` on the server turns off catalog editing and guards the credits:
-  videos are trimmed to 60 s, uploads capped at 300 MB, at most 2 rooms analyzed at once.
+  videos are trimmed to 60 s, uploads capped at 300 MB, at most 2 rooms analyzed at once,
+  and each visitor gets 4 rooms, 12 looks and 40 voice notes a day.
 
 ## Analyze a room
 
