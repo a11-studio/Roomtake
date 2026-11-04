@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 
 // Google Sans Flex is newer than next/font's font list, so it comes straight
@@ -47,6 +48,8 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       </head>
       <body className="antialiased">
         <main className="mx-auto min-h-dvh w-full max-w-md px-5 pb-20 md:max-w-3xl md:px-8 lg:max-w-6xl lg:px-10">{children}</main>
+        {/* Vercel Web Analytics: visitors and page views, no cookies */}
+        <Analytics />
       </body>
     </html>
   );
