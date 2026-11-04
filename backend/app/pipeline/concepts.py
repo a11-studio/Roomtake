@@ -26,6 +26,7 @@ CONCEPTS: dict[str, str] = {
     "tv stand": "furniture",
     "shelving unit": "furniture",
     "wardrobe": "furniture",
+    "bed": "furniture",  # Nov 4: bedrooms (the demo's bedroom came back with no bed)
     # decor
     "lamp": "decor",
     "rug": "decor",

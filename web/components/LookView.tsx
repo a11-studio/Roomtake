@@ -255,7 +255,7 @@ export function LookView({
               />
             </div>
             <figcaption className="mt-2 px-1 text-xs text-muted">
-              {v.kind === "main" ? "Your room" : `Your ${v.label.replace(" floor", "")}`}
+              {v.kind === "main" ? `Your ${look.brief?.room_type ?? "room"}` : `Your ${v.label.replace(" floor", "")}`}
               {v.current && " · drag to compare"}
             </figcaption>
           </figure>
@@ -280,7 +280,7 @@ export function LookView({
                     </p>
                     <ul className="mt-4 space-y-3">
                       {products.map((u, i) => (
-                        <UsedProduct key={u.product.id} use={u} index={i} />
+                        <UsedProduct key={`${u.product.id}-${u.view}`} use={u} index={i} />
                       ))}
                     </ul>
                   </>

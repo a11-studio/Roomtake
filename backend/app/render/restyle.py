@@ -27,7 +27,7 @@ from app.render import muse_image
 
 # Big pieces that define the layout; small decor is free to change.
 LAYOUT = ["sofa", "armchair", "coffee table", "side table", "chair", "dining table",
-          "shelving unit", "tv stand", "television", "rug", "curtain", "wardrobe"]
+          "shelving unit", "tv stand", "television", "rug", "curtain", "wardrobe", "bed"]
 # piece -> (colour name for the prompt, RGB on the map)
 MAP_COLORS = {
     "sofa": ("red", (230, 60, 60)), "armchair": ("yellow", (240, 220, 40)),
@@ -36,6 +36,7 @@ MAP_COLORS = {
     "shelving unit": ("purple", (150, 80, 200)), "tv stand": ("brown", (120, 70, 40)),
     "television": ("black", (30, 30, 30)), "rug": ("pink", (240, 120, 200)),
     "curtain": ("cyan", (60, 200, 210)), "wardrobe": ("navy", (30, 40, 120)),
+    "bed": ("teal", (20, 130, 130)),
 }
 ZONE_COLOR = ("pink", (240, 120, 200))
 

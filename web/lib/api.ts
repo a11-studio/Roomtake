@@ -103,7 +103,7 @@ export type ProductUse = {
 
 export type LookView = {
   file: string;
-  kind: "main" | "zone";
+  kind: "main" | "zone" | "room"; // room: another room of the home (the demo's bedroom)
   label: string;
   after: string | null;
   current: string | null;
@@ -118,6 +118,7 @@ export type Look = {
   error: string | null;
   brief: null | {
     title: string;
+    room_type?: string;
     summary: string;
     why?: string;
     palette?: string[];

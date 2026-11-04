@@ -138,7 +138,7 @@ export default function Home() {
             className="flex w-full items-center justify-center gap-2 rounded-full bg-card py-4 hover:bg-[#fbf9f7] text-base font-medium shadow-[var(--shadow-card)] transition active:scale-[0.99]"
           >
             <Couch className="text-[19px]" />
-            Try our demo living room
+            Try our demo
           </Link>
           {error && <p className="text-center text-sm text-warn">{error}</p>}
           <p className="flex items-center justify-center gap-1.5 pt-3 text-xs text-muted">
