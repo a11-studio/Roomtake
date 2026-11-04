@@ -107,7 +107,7 @@ def _product_line(n: int, use: dict) -> str:
 def prompt(view: dict, brief: dict, masks: dict[str, np.ndarray], kept: list[str], uses: list[dict]) -> str:
     """uses: real catalog products for this view, shown to the model as images 3, 4, ..."""
     style = f"{brief['title']}: {brief['summary']} Palette: {', '.join(brief.get('palette', []))}. " \
-            f"Materials: {', '.join(brief.get('materials', []))}."
+            f"Materials: {', '.join(brief.get('materials', []))}." + (f" {brief['mood']}" if brief.get("mood") else "")
     real = {u["for"]: (n, u) for n, u in enumerate(uses, start=3) if u["for"] != "add"}
     added = [(n, u) for n, u in enumerate(uses, start=3) if u["for"] == "add"]
     copy = "copy its exact design, shape, colour and material"

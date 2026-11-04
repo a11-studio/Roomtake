@@ -12,7 +12,11 @@ CATEGORIES = [
 ]
 PIECE_TO_CATEGORY = {"picture frame": "painting"}
 
-STYLES = ["Scandinavian", "Japandi", "Art Deco", "Mid-Century", "Mediterranean"]
+STYLES = ["Scandinavian", "Japandi", "Art Deco", "Mid-Century", "Mediterranean", "Christmas"]
+# Christmas is a season, not an interior: the room keeps its furniture and is
+# dressed for the holidays (stylist.CHRISTMAS_RULES); its products (decorations,
+# festive cushions) are hand-picked from westwing.sk/vianoce and offered only there.
+SEASONAL = {"Christmas"}
 
 # Budgets and comparisons are in EUR; fixed rates are fine for a demo.
 TO_EUR = {"EUR": 1.0, "CZK": 1 / 25.2, "USD": 0.92}

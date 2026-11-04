@@ -18,7 +18,7 @@ import re
 from pathlib import Path
 
 from app.catalog import get_product, search_products
-from app.catalog.models import PIECE_TO_CATEGORY
+from app.catalog.models import PIECE_TO_CATEGORY, SEASONAL
 from app.config import ARCHITECT_MODEL, HELPER_MODEL
 from app.meta_client import async_client
 from app.render.restyle import LAYOUT, pieces_in_view
@@ -29,6 +29,8 @@ KEEPABLE = ("furniture", "decor")
 ADD_ONS = ["curtain", "rug", "lamp", "potted plant", "painting", "mirror", "vase", "cushion"]
 ZONE_PIECES = ["outdoor furniture", "potted plant", "rug", "lamp"]
 MAX_MAIN, MAX_ZONE, PER_CATEGORY = 5, 3, 5
+# Christmas also shortlists decorations, and more festive textiles per category
+FESTIVE_ADD_ONS, FESTIVE_PER_CATEGORY = ["decor"], 8
 # Wonder usually writes the brief in 20-45 s but has taken 113 s (Nov 2);
 # past this, Spark writes it instead (~15-20 s, similar picks in T3).
 WONDER_TIMEOUT_S = 45
@@ -65,6 +67,35 @@ DRESSING_RULES = """Dressing rules (they make even a basic room look finished):
   the new rug lies on top of it."""
 
 
+# Martin, Nov 4: a Christmas option, a tip for dressing your own home for the
+# holidays: the furniture stays, the decorations and the light make the change.
+CHRISTMAS_RULES = """Christmas: this is a festive makeover of the user's own home, a tip for how to dress it
+for the holidays, not a new interior. Keep each piece close to what it is now and describe it in
+"pieces" as the same piece dressed for Christmas (e.g. "the same grey sofa with red and green velvet
+cushions and a green knit throw"). The change comes from decorations and light: a real Christmas tree
+with warm white fairy lights and ornaments in a free corner, garlands of greenery with tiny lights,
+a wreath, lit candles, stockings, festive cushions and throws. Use as many Christmas products from
+the shortlist (styles: Christmas) as fit, in the main view. Palette: deep green, red, warm gold, cream."""
+
+# Martin, Nov 4: every Christmas look gets a lit tree, this one, in the room's
+# best free spot (westwing.sk Grandis, handmade, LED, 180 cm)
+CHRISTMAS_TREE = "westwing-DEQ25KAE30800-995201"
+TREE_RULE = f"""The tree: find the best free floor space in the main photo (an empty corner, beside a
+window, next to the sofa; never in front of a door or in the walkway) and stand the lit Christmas
+tree there. Use the product {CHRISTMAS_TREE} for it: "for": "add", "view": "main", and say in "note"
+exactly where it stands (e.g. "lit Christmas tree on the floor in the empty corner left of the
+balcony door"). Don't list another tree in "add"."""
+
+# Added to the image prompt of a Christmas look, so every view glows the same way
+CHRISTMAS_MOOD = ("Make it feel like a Christmas evening at home: a decorated Christmas tree glowing with warm "
+                  "white fairy lights, strings of tiny warm lights and greenery garlands, lit candles, a soft "
+                  "warm glow over the whole room; cosy and festive but tasteful, like a magazine holiday spread.")
+
+
+def festive(style: str | None) -> bool:
+    return bool(style) and style.strip().lower() in {s.lower() for s in SEASONAL}
+
+
 def _image(path: Path) -> dict:
     return {"type": "image_url", "image_url": {"url": "data:image/jpeg;base64," + base64.b64encode(path.read_bytes()).decode()}}
 
@@ -90,11 +121,15 @@ def _inventory(room: dict) -> str:
 
 
 def shortlist(room_dir: Path, room: dict, style: str | None, budget: float | None) -> str:
-    """Catalog products per piece the design can use, style matches first."""
+    """Catalog products per piece the design can use, style matches first. Seasonal
+    products (Christmas) only for their season, and the season adds decorations."""
+    season = festive(style)
     main = next((v for v in room["views"] if v["kind"] == "main"), None)
     groups: dict[str, list[str]] = {}
     if main:
         groups["main"] = [c for c in pieces_in_view(room_dir, main["frame"]) if c != "television"] + ADD_ONS
+        if season:
+            groups["main"] += FESTIVE_ADD_ONS
     for v in room["views"]:
         if v["kind"] == "zone":
             groups[v["label"]] = ZONE_PIECES
@@ -107,9 +142,10 @@ def shortlist(room_dir: Path, room: dict, style: str | None, budget: float | Non
         for cat in cats:
             by_category.setdefault(PIECE_TO_CATEGORY.get(cat, cat), cat)
         for category, cat in by_category.items():
-            hits = search_products(category, max_price=budget)
+            hits = [p for p in search_products(category, max_price=budget, limit=200)
+                    if season or not any(s in (p.style or "") for s in SEASONAL)]
             hits.sort(key=lambda p: (not (style and p.style and style.lower() in p.style.lower()), p.price_eur))
-            for p in hits[:PER_CATEGORY]:
+            for p in hits[:FESTIVE_PER_CATEGORY if season else PER_CATEGORY]:
                 size = f"{p.width_cm:.0f}x{p.depth_cm or 0:.0f}x{p.height_cm or 0:.0f} cm" if p.width_cm else "size n/a"
                 lines.append(f"- {p.id} | {cat} | {p.name_en or p.name} | {p.color}, {p.material} | "
                              f"{size} | {p.price_eur:.0f} EUR | styles: {p.style or '-'}")
@@ -149,12 +185,15 @@ def _picks(brief: dict) -> list[dict]:
 
 async def style_brief(room_dir: Path, room: dict, prefs: dict) -> dict:
     keep, budget = prefs.get("keep") or [], prefs.get("budget")
+    season = festive(prefs.get("style"))
+    goal = (CHRISTMAS_RULES + "\n" + TREE_RULE if season else
+            """Make the transformation clearly visible, worthy of an
+interior magazine: give each piece a concrete new design (shape, material, colour), not just
+new cushions. Only items in the keep list stay as they are.""")
     text = f"""You are Roomtake's interior stylist. The photos show the user's real room (first photo
 is the main view; others are free-space zones like a balcony). We will restyle the room as a whole
 with an image model that keeps every piece of furniture in place and only changes its design.
-Write the style brief for that restyle. Make the transformation clearly visible, worthy of an
-interior magazine: give each piece a concrete new design (shape, material, colour), not just
-new cushions. Only items in the keep list stay as they are.
+Write the style brief for that restyle. {goal}
 
 Style the user picked: {prefs.get('style') or 'your best suggestion for this room'}
 Budget for buying the look: {budget or 'not set'} EUR
@@ -181,7 +220,21 @@ Reply with JSON only:
     except asyncio.TimeoutError:
         brief = await _ask(HELPER_MODEL, content)
         brief["model"] = f"{HELPER_MODEL} (fallback: {ARCHITECT_MODEL} over {WONDER_TIMEOUT_S} s)"
+    if season:
+        brief["mood"] = CHRISTMAS_MOOD
+        _tree_first(brief)
     return _check(brief, keep, room, budget)
+
+
+def _tree_first(brief: dict) -> None:
+    """The lit tree leads a Christmas look's products, so the per-view cap never drops it."""
+    picks = brief.get("products") or []
+    tree = next((u for u in picks if u.get("product_id") == CHRISTMAS_TREE), None)
+    if tree is None:
+        where = next((a for a in brief.get("add", []) if "tree" in a.lower()), None)
+        tree = {"product_id": CHRISTMAS_TREE, "note": where or "lit Christmas tree standing on the floor in the best free corner"}
+    tree.update({"for": "add", "view": "main"})
+    brief["products"] = [tree, *(u for u in picks if u is not tree)]
 
 
 async def revise_brief(room_dir: Path, room: dict, brief: dict, instruction: str, prefs: dict) -> dict:
@@ -199,10 +252,13 @@ that fit the new style.
 {PRODUCT_RULES}
 
 Shortlist (id | piece | name | colour, material | W x D x H | price | styles):
-{shortlist(room_dir, room, None, prefs.get('budget'))}
+{shortlist(room_dir, room, prefs.get('style') if brief.get('mood') else None, prefs.get('budget'))}
 
 Reply with the full updated brief as JSON only, same schema:
 {BRIEF_SCHEMA}"""
     revised = await _ask(HELPER_MODEL, [{"type": "text", "text": text}])
     revised["model"] = HELPER_MODEL
+    # a Christmas look stays festive through edits, unless the edit leaves Christmas behind
+    if brief.get("mood") and "christmas" in json.dumps(revised).lower():
+        revised["mood"] = brief["mood"]
     return _check(revised, brief.get("keep", []), room, prefs.get("budget"))
