@@ -1,10 +1,10 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { HowItWorks } from "@/components/HowItWorks";
+import { Logo } from "@/components/Logo";
 import { Camera, Close, Couch, MetaMark, Plus } from "@/components/Icons";
 import { uploadPhotos } from "@/lib/api";
 
@@ -47,7 +47,7 @@ export default function Home() {
 
   return (
     <div className="home flex min-h-dvh flex-col pt-6 lg:pt-12">
-      <Image src="/RoomTake.svg" alt="Roomtake" width={78} height={60} priority />
+      <Logo className="w-[78px] cursor-pointer select-none" />
 
       {/* Phone: headline, the how-it-works demo, buttons. Desktop: headline and
           buttons on the left, the demo on the right. */}
