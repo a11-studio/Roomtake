@@ -23,12 +23,12 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Literal
 
-from fastapi import FastAPI, File, HTTPException, UploadFile
+from fastapi import FastAPI, File, HTTPException, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, StreamingResponse
 from pydantic import BaseModel
 
-from app import looks
+from app import looks, quota
 from app.agent.architect import make_plan, revise_plan
 from app.catalog import CATEGORIES, STYLES, Product, add_product, all_products, get_product, remove_product, search_products
 from app.catalog.curated import import_url
@@ -102,7 +102,7 @@ async def run_analysis(room_id: str, sources: list[Path], kind: Literal["photos"
 
 
 @app.post("/api/rooms")
-async def create_room(photos: list[UploadFile] = File(default=[]), video: UploadFile | None = None) -> dict:
+async def create_room(request: Request, photos: list[UploadFile] = File(default=[]), video: UploadFile | None = None) -> dict:
     """1-3 photos of a room (the main way, ~20 s) or a video (full tracking, ~5 min)."""
     files = photos[:MAX_PHOTOS] or ([video] if video else [])
     if not files:
@@ -111,6 +111,7 @@ async def create_room(photos: list[UploadFile] = File(default=[]), video: Upload
         raise HTTPException(429, "Roomtake is analyzing other rooms right now. Try again in a few minutes.")
     if any(f.size and f.size > MAX_UPLOAD_MB * 2**20 for f in files):
         raise HTTPException(413, f"That file is over {MAX_UPLOAD_MB} MB.")
+    quota.take(request, "room")
     room_id = uuid.uuid4().hex[:10]
     out = ROOMS / room_id
     out.mkdir(parents=True)
@@ -263,9 +264,10 @@ def save_plan(room_id: str, plan: dict) -> dict:
 
 
 @app.post("/api/rooms/{room_id}/plan")
-async def plan(room_id: str, req: PlanRequest) -> dict:
+async def plan(room_id: str, req: PlanRequest, request: Request) -> dict:
     """Muse Wonder looks at the room and proposes 3-5 changes with products (~30-40 s)."""
     load_room(room_id)
+    quota.take(request, "look")
     try:
         result = await make_plan(room_dir(room_id), req.model_dump())
     except Exception as e:
@@ -282,9 +284,10 @@ def get_plan(room_id: str) -> dict:
 
 
 @app.post("/api/rooms/{room_id}/plan/revise")
-async def revise(room_id: str, req: ReviseRequest) -> dict:
+async def revise(room_id: str, req: ReviseRequest, request: Request) -> dict:
     """Muse Spark applies a follow-up like "keep the sofa" or "cheaper" (~15 s)."""
     current = get_plan(room_id)
+    quota.take(request, "look")
     try:
         result = await revise_plan(room_dir(room_id), current, req.instruction)
     except Exception as e:
@@ -318,9 +321,11 @@ def look_body(room_id: str, look_id: str) -> dict:
 
 
 @app.post("/api/rooms/{room_id}/looks")
-async def create_look(room_id: str, req: LookRequest) -> dict:
+async def create_look(room_id: str, req: LookRequest, request: Request) -> dict:
     """Whole-room restyle in one style, using real catalog products where they fit.
     Poll GET .../looks/{id}; status goes brief -> rendering -> checking -> done (~1 min)."""
+    load_room(room_id)
+    quota.take(request, "look")
     look = looks.new_look(room_dir(room_id), load_room(room_id), req.model_dump())
     start_look(room_id, look)
     return look
@@ -351,12 +356,13 @@ class ReviseLookRequest(BaseModel):
 
 
 @app.post("/api/rooms/{room_id}/looks/{look_id}/revise")
-async def revise_look(room_id: str, look_id: str, req: ReviseLookRequest) -> dict:
+async def revise_look(room_id: str, look_id: str, req: ReviseLookRequest, request: Request) -> dict:
     """Muse Spark edits the brief ("warmer", "keep the sofa", "Japandi instead"),
     then the views are restyled again. Returns the new look to poll."""
     parent = look_body(room_id, look_id)
     if not parent.get("brief"):
         raise HTTPException(409, "look has no brief yet")
+    quota.take(request, "look")
     look = looks.new_look(room_dir(room_id), load_room(room_id), parent["prefs"], parent, req.instruction)
     start_look(room_id, look, looks.parent_brief(parent))
     return look
@@ -369,12 +375,13 @@ class RenderRequest(BaseModel):
 
 
 @app.post("/api/rooms/{room_id}/render")
-async def render(room_id: str, req: RenderRequest) -> dict:
+async def render(room_id: str, req: RenderRequest, request: Request) -> dict:
     room = load_room(room_id)
     obj = next((o for o in room["objects"] if o["id"] == req.object_id), None)
     product = get_product(req.product_id)
     if obj is None or product is None:
         raise HTTPException(404, "object or product not found")
+    quota.take(request, "look")
     try:
         result = await visualize(room_dir(room_id), obj, product, req.action)
     except RuntimeError as e:
@@ -383,11 +390,12 @@ async def render(room_id: str, req: RenderRequest) -> dict:
 
 
 @app.post("/api/transcribe")
-async def transcribe_speech(audio: UploadFile) -> dict:
+async def transcribe_speech(audio: UploadFile, request: Request) -> dict:
     """What the user said to the stylist, as text (Muse Voice Transcribe, ~1-3 s)."""
     data = await audio.read()
     if not data or len(data) > 10 * 2**20:
         raise HTTPException(413, "That recording is empty or too long.")
+    quota.take(request, "voice")
     try:
         return {"text": await transcribe(data)}
     except ValueError as e:

@@ -42,3 +42,5 @@ CURATE_ENABLED = not PUBLIC
 MAX_UPLOAD_MB = 300
 MAX_VIDEO_S = 60
 MAX_ANALYSES = 2
+# ...and each visitor (by IP) gets a day's worth of model work, then a polite 429
+VISITOR_LIMITS = {"room": 4, "look": 12, "voice": 40}
