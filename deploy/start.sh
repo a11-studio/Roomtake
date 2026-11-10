@@ -4,4 +4,4 @@
 set -e
 mkdir -p "$ROOMTAKE_DATA/rooms"
 cp -rn /app/seed/rooms/IMG_1184 "$ROOMTAKE_DATA/rooms/" || true  # newer cp reports skipped files
-exec /app/backend/.venv/bin/uvicorn app.main:app --app-dir /app/backend --host 0.0.0.0 --port 8080 --proxy-headers
+cd /app/backend && exec /app/backend/.venv/bin/python -m app.serve  # exits 0 when idle (app/idle.py)

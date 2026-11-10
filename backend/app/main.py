@@ -28,7 +28,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, StreamingResponse
 from pydantic import BaseModel
 
-from app import looks, quota
+from app import idle, looks, quota
 from app.agent.architect import make_plan, revise_plan
 from app.catalog import CATEGORIES, STYLES, Product, add_product, all_products, get_product, remove_product, search_products
 from app.catalog.curated import import_url
@@ -402,3 +402,13 @@ async def transcribe_speech(audio: UploadFile, request: Request) -> dict:
         raise HTTPException(400, str(e)) from e
     except Exception as e:
         raise HTTPException(502, f"{type(e).__name__}: {e}") from e
+
+
+@app.get("/api/health")
+def health() -> dict:
+    """Fly's health check; it does not count as a visit (app.idle)."""
+    return {"ok": True}
+
+
+# On the public deploy, stop the machine when nobody uses it (IDLE_STOP_MIN).
+idle.install(app, busy=lambda: bool(background) or any(j.task and not j.task.done() for j in jobs.values()))
