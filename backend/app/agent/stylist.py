@@ -17,7 +17,7 @@ import json
 import re
 from pathlib import Path
 
-from app.catalog import get_product, search_products
+from app.catalog import STORES, get_product, search_products
 from app.catalog.models import PIECE_TO_CATEGORY, SEASONAL
 from app.config import ARCHITECT_MODEL, HELPER_MODEL
 from app.meta_client import async_client
@@ -120,9 +120,24 @@ def _inventory(room: dict) -> str:
     )
 
 
+def store_rule(room: dict) -> str:
+    """A store's demo: the sofa must be theirs, nothing else is for sale."""
+    name = STORES.get(room.get("store") or "")
+    if not name:
+        return ""
+    return f"""This design is for the furniture store {name}. The shortlist holds only {name}'s sofas.
+You MUST use exactly one of them: "for": "sofa" if the room has a sofa, otherwise "for": "add" with a
+note saying where it stands (along the longest free wall). Pick the one whose size and colour suit
+the room best. Everything else (rug, curtains, lamps, plants...) is described in words, no products."""
+
+
 def shortlist(room_dir: Path, room: dict, style: str | None, budget: float | None) -> str:
     """Catalog products per piece the design can use, style matches first. Seasonal
-    products (Christmas) only for their season, and the season adds decorations."""
+    products (Christmas) only for their season, and the season adds decorations.
+    A store's room (room["store"]) lists only that store's products, with no budget cap."""
+    store = room.get("store")
+    if store:
+        budget = None
     season = festive(style)
     main = next((v for v in room["views"] if v["kind"] == "main"), None)
     groups: dict[str, list[str]] = {}
@@ -130,6 +145,8 @@ def shortlist(room_dir: Path, room: dict, style: str | None, budget: float | Non
         groups["main"] = [c for c in pieces_in_view(room_dir, main["frame"]) if c != "television"] + ADD_ONS
         if season:
             groups["main"] += FESTIVE_ADD_ONS
+        if store and "sofa" not in groups["main"]:  # their sofa goes in even if the room has none
+            groups["main"].append("sofa")
     for v in room["views"]:
         if v["kind"] == "zone":
             groups[v["label"]] = ZONE_PIECES
@@ -142,7 +159,7 @@ def shortlist(room_dir: Path, room: dict, style: str | None, budget: float | Non
         for cat in cats:
             by_category.setdefault(PIECE_TO_CATEGORY.get(cat, cat), cat)
         for category, cat in by_category.items():
-            hits = [p for p in search_products(category, max_price=budget, limit=200)
+            hits = [p for p in search_products(category, max_price=budget, limit=200, store=store)
                     if season or not any(s in (p.style or "") for s in SEASONAL)]
             hits.sort(key=lambda p: (not (style and p.style and style.lower() in p.style.lower()), p.price_eur))
             for p in hits[:FESTIVE_PER_CATEGORY if season else PER_CATEGORY]:
@@ -159,6 +176,9 @@ def _check(brief: dict, keep: list[str], room: dict, budget: float | None) -> di
     brief["keep"] = sorted({*brief.get("keep", []), *keep} & {i for i, o in objects.items() if o["category"] in KEEPABLE})
     kept_labels = {objects[i]["label"] for i in brief["keep"]}
     zones = {v["label"] for v in room["views"] if v["kind"] == "zone"}
+    store = room.get("store")
+    if store:
+        budget = None
     out, per_view, total = [], {}, 0.0
     for u in brief.get("products", []):
         p = get_product(str(u.get("product_id", "")))
@@ -174,6 +194,14 @@ def _check(brief: dict, keep: list[str], room: dict, budget: float | None) -> di
         total += p.price_eur
         out.append({"product": p.to_dict(), "for": target if view == "main" else "add",
                     "view": view, "note": u.get("note", "")})
+    if store and not any(x["product"]["source"] == store for x in out):
+        # the stylist skipped the store's sofa: put the first one in (a store's demo must show it)
+        p = search_products("sofa", store=store, limit=1)
+        if p:
+            sofa_kept = "sofa" in kept_labels
+            has_sofa = any(o["label"] == "sofa" for o in room["objects"])
+            out.insert(0, {"product": p[0].to_dict(), "for": "sofa" if has_sofa and not sofa_kept else "add",
+                           "view": "main", "note": "" if has_sofa else "along the longest free wall"})
     brief["products"] = out
     return brief
 
@@ -204,6 +232,7 @@ Detected objects:
 {_inventory(room)}
 
 {PRODUCT_RULES}
+{store_rule(room)}
 
 {DRESSING_RULES}
 
@@ -250,6 +279,7 @@ still fit). To keep an item as it is, add its id to "keep". If the style changes
 that fit the new style.
 
 {PRODUCT_RULES}
+{store_rule(room)}
 
 Shortlist (id | piece | name | colour, material | W x D x H | price | styles):
 {shortlist(room_dir, room, prefs.get('style') if brief.get('mood') else None, prefs.get('budget'))}

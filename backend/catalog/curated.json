@@ -2159,6 +2159,23 @@
     "name_en": "Distinct Oak Wood Side Table"
   },
   {
+    "id": "melli-zara",
+    "name": "Rozkladací gauč ZARA",
+    "category": "sofa",
+    "style": "Mid-Century, Art Deco",
+    "color": "anthracite black",
+    "material": "upholstery fabric, metal legs",
+    "price": 690,
+    "currency": "EUR",
+    "width_cm": 225,
+    "depth_cm": 100,
+    "height_cm": 90,
+    "image_url": "https://www.melli.sk/wp-content/uploads/2023/12/Front-1.jpg",
+    "product_url": "https://www.melli.sk/produkt/zara/",
+    "source": "melli",
+    "name_en": "ZARA sofa bed"
+  },
+  {
     "id": "westwing-DEQ22WES84220-179020",
     "name": "Sofa Alba (2-seater)",
     "category": "sofa",
@@ -2210,6 +2227,23 @@
     "name_en": "Eliot Boucle 2-Seater Sofa"
   },
   {
+    "id": "melli-elena",
+    "name": "Rohová sedacia súprava ELENA",
+    "category": "sofa",
+    "style": "Japandi, Scandinavian, Mediterranean",
+    "color": "sand beige",
+    "material": "upholstery fabric, metal legs",
+    "price": 1199,
+    "currency": "EUR",
+    "width_cm": 245,
+    "depth_cm": 155,
+    "height_cm": null,
+    "image_url": "https://www.melli.sk/wp-content/uploads/2023/02/02_Front-1.jpg",
+    "product_url": "https://www.melli.sk/produkt/elena/",
+    "source": "melli",
+    "name_en": "ELENA corner sofa bed with chaise"
+  },
+  {
     "id": "westwing-DEQ26WES53069-176483",
     "name": "Sofa Mary (2-seater)",
     "category": "sofa",
@@ -2244,6 +2278,23 @@
     "name_en": "Hunter Leather 4-Seater Sofa"
   },
   {
+    "id": "melli-carla",
+    "name": "Rohová sedacia súprava CARLA",
+    "category": "sofa",
+    "style": "Scandinavian, Mid-Century",
+    "color": "olive green",
+    "material": "chenille upholstery",
+    "price": 1390,
+    "currency": "EUR",
+    "width_cm": null,
+    "depth_cm": null,
+    "height_cm": null,
+    "image_url": "https://www.melli.sk/wp-content/uploads/2023/12/Front.jpg",
+    "product_url": "https://www.melli.sk/produkt/carla/",
+    "source": "melli",
+    "name_en": "CARLA corner sofa bed with storage"
+  },
+  {
     "id": "westwing-DEQ24WES43780-206932",
     "name": "Sofa Stella (3-seater)",
     "category": "sofa",
@@ -2259,6 +2310,40 @@
     "product_url": "https://www.westwing.sk/en/sofa-stella-3-seater-en-24wes43780.html",
     "source": "westwing",
     "name_en": "Stella 3-Seater Sofa"
+  },
+  {
+    "id": "melli-edita",
+    "name": "Rohová sedačka EDITA",
+    "category": "sofa",
+    "style": "Scandinavian",
+    "color": "cream",
+    "material": "upholstery fabric, metal legs",
+    "price": 1490,
+    "currency": "EUR",
+    "width_cm": 285,
+    "depth_cm": null,
+    "height_cm": 87,
+    "image_url": "https://www.melli.sk/wp-content/uploads/2023/02/02_Front_v1.jpg",
+    "product_url": "https://www.melli.sk/produkt/edita/",
+    "source": "melli",
+    "name_en": "EDITA corner sofa with adjustable headrests"
+  },
+  {
+    "id": "melli-monika",
+    "name": "Rohová sedacia súprava MONIKA",
+    "category": "sofa",
+    "style": "Scandinavian, Japandi",
+    "color": "ivory",
+    "material": "upholstery fabric, metal legs",
+    "price": 1490,
+    "currency": "EUR",
+    "width_cm": 270,
+    "depth_cm": 200,
+    "height_cm": 80,
+    "image_url": "https://www.melli.sk/wp-content/uploads/2022/06/FRONT.jpg",
+    "product_url": "https://www.melli.sk/produkt/rohova-sedacia-suprava-monika/",
+    "source": "melli",
+    "name_en": "MONIKA corner sofa with electric seat extension"
   },
   {
     "id": "westwing-DEQ26WES95887-905691",
@@ -2293,6 +2378,23 @@
     "product_url": "https://www.westwing.sk/en/fsc-tayla-sofa-2-seatercorner-module-l-corner-module-r-froca_burberry-10-green-en-25wes28481.html",
     "source": "westwing",
     "name_en": "Tayla 2-Seater Modular Sofa"
+  },
+  {
+    "id": "melli-ivana",
+    "name": "Rohová sedačka IVANA",
+    "category": "sofa",
+    "style": "Art Deco, Mid-Century",
+    "color": "lavender grey",
+    "material": "velvet upholstery, wood base, metal legs",
+    "price": 1690,
+    "currency": "EUR",
+    "width_cm": null,
+    "depth_cm": null,
+    "height_cm": null,
+    "image_url": "https://www.melli.sk/wp-content/uploads/2023/12/preview_03.jpg",
+    "product_url": "https://www.melli.sk/produkt/ivana/",
+    "source": "melli",
+    "name_en": "IVANA corner sofa with adjustable headrests"
   },
   {
     "id": "westwing-DEQ23WES83000-200778",

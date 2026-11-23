@@ -23,14 +23,14 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Literal
 
-from fastapi import FastAPI, File, HTTPException, Request, UploadFile
+from fastapi import FastAPI, File, Form, HTTPException, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, StreamingResponse
 from pydantic import BaseModel
 
 from app import idle, looks, quota
 from app.agent.architect import make_plan, revise_plan
-from app.catalog import CATEGORIES, STYLES, Product, add_product, all_products, get_product, remove_product, search_products
+from app.catalog import CATEGORIES, STORES, STYLES, Product, add_product, all_products, get_product, remove_product, search_products
 from app.catalog.curated import import_url
 from app.config import CURATE_ENABLED, DATA_DIR, MAX_ANALYSES, MAX_UPLOAD_MB, PUBLIC
 from app.pipeline.photos import MAX_PHOTOS, analyze_photos
@@ -78,7 +78,11 @@ def load_room(room_id: str) -> dict:
     path = room_dir(room_id) / "room.json"
     if not path.exists():
         raise HTTPException(409, "room is still being analyzed")
-    return json.loads(path.read_text())
+    room = json.loads(path.read_text())
+    store = path.with_name("store.txt")  # rooms made from a store's demo link
+    if store.exists():
+        room["store"] = store.read_text().strip()
+    return room
 
 
 def status(room_id: str) -> str:
@@ -102,11 +106,15 @@ async def run_analysis(room_id: str, sources: list[Path], kind: Literal["photos"
 
 
 @app.post("/api/rooms")
-async def create_room(request: Request, photos: list[UploadFile] = File(default=[]), video: UploadFile | None = None) -> dict:
-    """1-3 photos of a room (the main way, ~20 s) or a video (full tracking, ~5 min)."""
+async def create_room(request: Request, photos: list[UploadFile] = File(default=[]), video: UploadFile | None = None,
+                      store: str | None = Form(default=None)) -> dict:
+    """1-3 photos of a room (the main way, ~20 s) or a video (full tracking, ~5 min).
+    store: a store's demo link (see STORES); the room's looks use only its products."""
     files = photos[:MAX_PHOTOS] or ([video] if video else [])
     if not files:
         raise HTTPException(400, "Add a photo of your room.")
+    if store and store not in STORES:
+        raise HTTPException(400, "unknown store")
     if PUBLIC and sum(j.status == "processing" for j in jobs.values()) >= MAX_ANALYSES:
         raise HTTPException(429, "Roomtake is analyzing other rooms right now. Try again in a few minutes.")
     if any(f.size and f.size > MAX_UPLOAD_MB * 2**20 for f in files):
@@ -115,6 +123,8 @@ async def create_room(request: Request, photos: list[UploadFile] = File(default=
     room_id = uuid.uuid4().hex[:10]
     out = ROOMS / room_id
     out.mkdir(parents=True)
+    if store:
+        (out / "store.txt").write_text(store)
     paths = []
     for i, f in enumerate(files):
         suffix = Path(f.filename or "").suffix.lower() or (".jpg" if photos else ".mov")

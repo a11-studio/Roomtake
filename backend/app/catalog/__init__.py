@@ -13,8 +13,12 @@ from app.catalog import curated, dummyjson
 from app.catalog.models import CATEGORIES, STYLES, Product
 from app.config import DATA_DIR
 
-__all__ = ["CATEGORIES", "STYLES", "Product", "add_product", "all_products", "get_product",
+__all__ = ["CATEGORIES", "STORES", "STYLES", "Product", "add_product", "all_products", "get_product",
            "remove_product", "search_products"]
+
+# Stores with their own demo link (roomtake-meta.vercel.app/?store=melli): a room
+# made there is styled only with that store's products, and their sofa is always in it.
+STORES = {"melli": "Melli"}
 
 
 @cache
@@ -49,12 +53,15 @@ def search_products(
     max_price: float | None = None,
     max_width: float | None = None,
     limit: int = 10,
+    store: str | None = None,
 ) -> list[Product]:
-    """Cheapest first. max_price in EUR. Style is a soft filter: products without a style still match."""
+    """Cheapest first. max_price in EUR. Style is a soft filter: products without a style still match.
+    A store's demo (store="melli") sees only that store's products; the public app never sees them."""
     category = category.strip().lower()
     hits = [
         p for p in _load().values()
         if p.category == category
+        and (p.source == store if store else p.source not in STORES)
         and (style is None or p.style is None or style.lower() in p.style.lower())
         and (max_price is None or p.price_eur <= max_price)
         and p.fits(max_width)

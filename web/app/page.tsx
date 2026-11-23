@@ -4,9 +4,11 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { HowItWorks } from "@/components/HowItWorks";
+import { StoreTag } from "@/components/StoreTag";
 import { Logo } from "@/components/Logo";
 import { Camera, Close, Couch, MetaMark, Plus } from "@/components/Icons";
 import { uploadPhotos } from "@/lib/api";
+import { STORES, storeFromUrl } from "@/lib/stores";
 
 const DEMO_ROOM = "IMG_1184";
 const MAX_PHOTOS = 3;
@@ -25,6 +27,10 @@ export default function Home() {
   const previews = usePreviews(photos);
   const [progress, setProgress] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
+  // a store's demo link (/?store=melli): rooms are styled with that store's products
+  const [store, setStore] = useState<string | null>(null);
+  useEffect(() => setStore(storeFromUrl()), []);
+  const demoRoom = store ? STORES[store].demoRoom : DEMO_ROOM;
 
   // The camera takes one photo at a time (only the library allows several),
   // so photos collect in a tray: add up to three, then start.
@@ -37,7 +43,7 @@ export default function Home() {
     setError(null);
     setProgress(0);
     try {
-      const { id } = await uploadPhotos(photos, setProgress);
+      const { id } = await uploadPhotos(photos, setProgress, store);
       router.push(`/room/${id}`);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Upload failed");
@@ -47,7 +53,10 @@ export default function Home() {
 
   return (
     <div className="home flex min-h-dvh flex-col pt-6 lg:pt-12">
-      <Logo className="w-[78px] cursor-pointer select-none" />
+      <div className="flex items-center gap-3">
+        <Logo className="w-[78px] cursor-pointer select-none" />
+        {store && <StoreTag name={STORES[store].name} />}
+      </div>
 
       {/* Phone: headline, the how-it-works demo, buttons. Desktop: headline and
           buttons on the left, the demo on the right. */}
@@ -133,13 +142,15 @@ export default function Home() {
                   : "Snap your room"}
             </span>
           </button>
-          <Link
-            href={`/room/${DEMO_ROOM}`}
-            className="flex w-full items-center justify-center gap-2 rounded-full bg-card py-4 hover:bg-[#fbf9f7] text-base font-medium shadow-[var(--shadow-card)] transition active:scale-[0.99]"
-          >
-            <Couch className="text-[19px]" />
-            Try our demo
-          </Link>
+          {demoRoom && (
+            <Link
+              href={`/room/${demoRoom}`}
+              className="flex w-full items-center justify-center gap-2 rounded-full bg-card py-4 hover:bg-[#fbf9f7] text-base font-medium shadow-[var(--shadow-card)] transition active:scale-[0.99]"
+            >
+              <Couch className="text-[19px]" />
+              Try our demo
+            </Link>
+          )}
           {error && <p className="text-center text-sm text-warn">{error}</p>}
           <p className="flex items-center justify-center gap-1.5 pt-3 text-xs text-muted">
             Powered by

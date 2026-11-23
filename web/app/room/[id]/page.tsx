@@ -7,6 +7,8 @@ import { Analysis } from "@/components/Analysis";
 import { Plus } from "@/components/Icons";
 import { LookView } from "@/components/LookView";
 import { Preferences } from "@/components/Preferences";
+import { StoreTag } from "@/components/StoreTag";
+import { STORES } from "@/lib/stores";
 import { createLook, getRoom, listLooks, reviseLook, type Preferences as Prefs, type Room } from "@/lib/api";
 
 type Stage = "loading" | "analyzing" | "prefs" | "look" | "error";
@@ -68,9 +70,12 @@ export default function RoomPage({ params }: { params: Promise<{ id: string }> }
   return (
     <>
       <header className="flex items-center justify-between pt-6">
-        <Link href="/" aria-label="Home">
-          <Image src="/RoomTake-light.svg" alt="Roomtake" width={52} height={40} />
-        </Link>
+        <div className="flex items-center gap-3">
+          <Link href={room?.store ? `/?store=${room.store}` : "/"} aria-label="Home">
+            <Image src="/RoomTake-light.svg" alt="Roomtake" width={52} height={40} />
+          </Link>
+          {room?.store && STORES[room.store] && <StoreTag name={STORES[room.store].name} />}
+        </div>
         {stage === "look" && (
           <button
             onClick={() => setStage("prefs")}

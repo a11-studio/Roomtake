@@ -24,6 +24,7 @@ export type Room = {
   keyframes: { file: string; time_s: number }[];
   views: { file: string; frame: number; kind: "main" | "zone"; label: string }[];
   objects: RoomObject[];
+  store?: string; // made from a store's demo link (lib/stores.ts)
 };
 
 export type Product = {
@@ -70,7 +71,7 @@ async function json<T>(res: Response): Promise<T> {
 }
 
 /** 1-3 photos of the room (the first is the room itself, e.g. a balcony can follow). */
-export function uploadPhotos(files: File[], onProgress: (pct: number) => void): Promise<{ id: string }> {
+export function uploadPhotos(files: File[], onProgress: (pct: number) => void, store?: string | null): Promise<{ id: string }> {
   // XHR rather than fetch: fetch has no upload progress, and phone photos are several MB.
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
@@ -87,6 +88,7 @@ export function uploadPhotos(files: File[], onProgress: (pct: number) => void): 
     xhr.onerror = () => reject(new Error("Upload failed"));
     const form = new FormData();
     files.slice(0, 3).forEach((f) => form.append("photos", f));
+    if (store) form.append("store", store);
     xhr.send(form);
   });
 }

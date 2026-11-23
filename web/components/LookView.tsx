@@ -6,6 +6,7 @@ import { MicButton, useDictation } from "@/components/Dictation";
 import { ArrowUp } from "@/components/Icons";
 import { Orb } from "@/components/Orb";
 import { fileUrl, getLook, thumb, type Look, type ProductUse, type Room } from "@/lib/api";
+import { STORES } from "@/lib/stores";
 import { CONTRAST, styleOf } from "@/lib/styles";
 
 /** Quick changes that fit this look: keep the room's biggest piece, try a
@@ -20,7 +21,8 @@ function suggestions(look: Look, room: Room | null): string[] {
   const next = style ? CONTRAST[style] : "Japandi";
   return [
     "Warmer and cosier",
-    biggest && `Keep my ${biggest.label}`,
+    // a store's demo is about their sofa: keeping the old one would take it out
+    biggest && !(room?.store && biggest.label === "sofa") && `Keep my ${biggest.label}`,
     "More plants",
     `Try ${next} instead`,
   ].filter((q): q is string => !!q && q.toLowerCase() !== look.instruction?.toLowerCase());
@@ -138,7 +140,10 @@ function UsedProduct({ use, index }: { use: ProductUse; index: number }) {
           {use.view !== "main" && ` · ${use.view.replace(" floor", "")}`}
         </p>
         <p className="mt-0.5 truncate text-[15px] leading-[1.3] font-medium">{p.name_en ?? p.name}</p>
-        <p className="mt-0.5 text-sm leading-[1.3] text-muted tabular-nums">{money(p.price_eur ?? p.price)}</p>
+        <p className="mt-0.5 text-sm leading-[1.3] text-muted tabular-nums">
+          {p.source in STORES && "from "}
+          {money(p.price_eur ?? p.price)}
+        </p>
       </div>
       <a
         href={p.product_url}
@@ -276,7 +281,8 @@ export function LookView({
                 {products.length > 0 ? (
                   <>
                     <p className="mt-2 text-sm leading-relaxed text-muted">
-                      Real Westwing products, drawn into your photo. Everything else is a design idea.
+                      Real {(room?.store && STORES[room.store]?.name) || "Westwing"} products, drawn into your photo.
+                      Everything else is a design idea.
                     </p>
                     <ul className="mt-4 space-y-3">
                       {products.map((u, i) => (

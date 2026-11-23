@@ -14,6 +14,8 @@ COPY backend backend
 # The demo living room, analyzed and styled ahead of time; copied onto the
 # volume on first boot so "Try our demo living room" opens instantly.
 COPY data/rooms/IMG_1184 seed/rooms/IMG_1184
+# Melli's demo room (roomtake-meta.vercel.app/?store=melli), styled with their sofa.
+COPY data/rooms/melli_demo seed/rooms/melli_demo
 COPY deploy/start.sh start.sh
 
 ENV ROOMTAKE_DATA=/data ROOMTAKE_PUBLIC=1

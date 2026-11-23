@@ -5,6 +5,7 @@
 !backend/app
 !backend/catalog
 !data/rooms/IMG_1184
+!data/rooms/melli_demo
 !deploy/start.sh
 data/rooms/IMG_1184/video.mp4
 data/rooms/IMG_1184/renders
